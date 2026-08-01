@@ -1,0 +1,100 @@
+{
+  "exercises": [
+    { "id": "ex_press_banca_barra", "name": "Press de Banca (Barra)", "muscleGroup": "chest" },
+    { "id": "ex_remo_pendlay", "name": "Remo Pendlay (Barra)", "muscleGroup": "back" },
+    { "id": "ex_press_hombros_barra", "name": "Press de Hombros (Barra)", "muscleGroup": "shoulders" },
+    { "id": "ex_jalon_pecho_cable", "name": "Jalón al Pecho (Cable)", "muscleGroup": "back" },
+    { "id": "ex_press_frances", "name": "Press Francés (Barra)", "muscleGroup": "arms" },
+    { "id": "ex_curl_barra_ez", "name": "Curl con Barra EZ", "muscleGroup": "arms" },
+
+    { "id": "ex_sentadilla_barra", "name": "Sentadilla (Barra)", "muscleGroup": "legs" },
+    { "id": "ex_press_piernas", "name": "Press de Piernas", "muscleGroup": "legs" },
+    { "id": "ex_zancadas_bulgara", "name": "Zancadas o Sentadilla Búlgara", "muscleGroup": "legs" },
+    { "id": "ex_gemelos_sentado", "name": "Elevación de Gemelos Sentado", "muscleGroup": "legs" },
+    { "id": "ex_piernas_barra_abdomen", "name": "Levantamiento de Piernas en Barra", "muscleGroup": "core" },
+
+    { "id": "ex_jalon_agarre_cerrado", "name": "Jalón al Pecho - Agarre Cerrado (Cable)", "muscleGroup": "back" },
+    { "id": "ex_press_banca_inclinado_mancuerna", "name": "Press de Banca Inclinado (Mancuerna)", "muscleGroup": "chest" },
+    { "id": "ex_remo_inclinado_apoyo", "name": "Remo Inclinado con Apoyo de Pecho (Mancuerna)", "muscleGroup": "back" },
+    { "id": "ex_mariposa_pec_deck", "name": "Mariposa (Pec Deck)", "muscleGroup": "chest" },
+    { "id": "ex_elevacion_lateral_mancuerna", "name": "Elevación Laterales (Mancuerna)", "muscleGroup": "shoulders" },
+    { "id": "ex_tiron_a_la_cara", "name": "Tirón a la Cara", "muscleGroup": "shoulders" },
+
+    { "id": "ex_press_hombros_mancuerna", "name": "Press de Hombros (Mancuerna)", "muscleGroup": "shoulders" },
+    { "id": "ex_triceps_polea", "name": "Tríceps con Polea", "muscleGroup": "arms" },
+    { "id": "ex_curl_martillo", "name": "Curl Martillo (Mancuerna)", "muscleGroup": "arms" },
+
+    { "id": "ex_peso_muerto_barra", "name": "Peso Muerto (Barra)", "muscleGroup": "legs" },
+    { "id": "ex_peso_muerto_rumano", "name": "Peso Muerto Rumano", "muscleGroup": "legs" },
+    { "id": "ex_curl_femoral", "name": "Curl Femoral (máquina)", "muscleGroup": "legs" },
+    { "id": "ex_hip_thrust", "name": "Hip Thrust o Puente de Glúteo", "muscleGroup": "legs" },
+    { "id": "ex_plancha", "name": "Flexiones en Plancha", "muscleGroup": "core" }
+  ],
+
+  "routines": [
+    {
+      "id": "rt_lunes_superior_a",
+      "name": "Lunes - Superior A",
+      "dayOfWeek": 1,
+      "exercises": [
+        { "exerciseId": "ex_press_banca_barra", "order": 1, "restSeconds": 150, "targetSets": 4, "repMin": 6, "repMax": 8 },
+        { "exerciseId": "ex_remo_pendlay", "order": 2, "restSeconds": 150, "targetSets": 4, "repMin": 6, "repMax": 8 },
+        { "exerciseId": "ex_press_hombros_barra", "order": 3, "restSeconds": 120, "targetSets": 3, "repMin": 8, "repMax": 10 },
+        { "exerciseId": "ex_jalon_pecho_cable", "order": 4, "restSeconds": 120, "targetSets": 3, "repMin": 8, "repMax": 10 },
+        { "exerciseId": "ex_press_frances", "order": 5, "restSeconds": 90, "targetSets": 3, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_curl_barra_ez", "order": 6, "restSeconds": 90, "targetSets": 3, "repMin": 8, "repMax": 12 }
+      ]
+    },
+    {
+      "id": "rt_martes_inferior_a",
+      "name": "Martes - Inferior A",
+      "dayOfWeek": 2,
+      "exercises": [
+        { "exerciseId": "ex_sentadilla_barra", "order": 1, "restSeconds": 150, "targetSets": 4, "repMin": 6, "repMax": 8 },
+        { "exerciseId": "ex_press_piernas", "order": 2, "restSeconds": 120, "targetSets": 4, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_zancadas_bulgara", "order": 3, "restSeconds": 90, "targetSets": 3, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_gemelos_sentado", "order": 4, "restSeconds": 60, "targetSets": 4, "repMin": 10, "repMax": 15 },
+        { "exerciseId": "ex_piernas_barra_abdomen", "order": 5, "restSeconds": 60, "targetSets": 3, "repMin": 10, "repMax": 15 }
+      ]
+    },
+    {
+      "id": "rt_miercoles_superior_b",
+      "name": "Miércoles - Superior B",
+      "dayOfWeek": 3,
+      "exercises": [
+        { "exerciseId": "ex_jalon_agarre_cerrado", "order": 1, "restSeconds": 120, "targetSets": 4, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_press_banca_inclinado_mancuerna", "order": 2, "restSeconds": 120, "targetSets": 4, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_remo_inclinado_apoyo", "order": 3, "restSeconds": 90, "targetSets": 3, "repMin": 12, "repMax": 15 },
+        { "exerciseId": "ex_mariposa_pec_deck", "order": 4, "restSeconds": 90, "targetSets": 3, "repMin": 15, "repMax": 20 },
+        { "exerciseId": "ex_elevacion_lateral_mancuerna", "order": 5, "restSeconds": 60, "targetSets": 4, "repMin": 15, "repMax": 20 },
+        { "exerciseId": "ex_tiron_a_la_cara", "order": 6, "restSeconds": 60, "targetSets": 3, "repMin": 15, "repMax": 20 }
+      ]
+    },
+    {
+      "id": "rt_jueves_superior_c",
+      "name": "Jueves - Superior C",
+      "dayOfWeek": 4,
+      "exercises": [
+        { "exerciseId": "ex_press_banca_barra", "order": 1, "restSeconds": 150, "targetSets": 4, "repMin": 6, "repMax": 8 },
+        { "exerciseId": "ex_press_hombros_mancuerna", "order": 2, "restSeconds": 120, "targetSets": 3, "repMin": 8, "repMax": 10 },
+        { "exerciseId": "ex_elevacion_lateral_mancuerna", "order": 3, "restSeconds": 60, "targetSets": 3, "repMin": 15, "repMax": 20 },
+        { "exerciseId": "ex_curl_barra_ez", "order": 4, "restSeconds": 90, "targetSets": 3, "repMin": 8, "repMax": 12 },
+        { "exerciseId": "ex_triceps_polea", "order": 5, "restSeconds": 60, "targetSets": 3, "repMin": 15, "repMax": 20 },
+        { "exerciseId": "ex_curl_martillo", "order": 6, "restSeconds": 60, "targetSets": 3, "repMin": 10, "repMax": 12 }
+      ]
+    },
+    {
+      "id": "rt_viernes_inferior_b",
+      "name": "Viernes - Inferior B",
+      "dayOfWeek": 5,
+      "exercises": [
+        { "exerciseId": "ex_peso_muerto_barra", "order": 1, "restSeconds": 150, "targetSets": 4, "repMin": 8, "repMax": 10 },
+        { "exerciseId": "ex_peso_muerto_rumano", "order": 2, "restSeconds": 120, "targetSets": 3, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_curl_femoral", "order": 3, "restSeconds": 90, "targetSets": 3, "repMin": 10, "repMax": 12 },
+        { "exerciseId": "ex_hip_thrust", "order": 4, "restSeconds": 90, "targetSets": 3, "repMin": 10, "repMax": 15 },
+        { "exerciseId": "ex_gemelos_sentado", "order": 5, "restSeconds": 60, "targetSets": 3, "repMin": 10, "repMax": 15 },
+        { "exerciseId": "ex_plancha", "order": 6, "restSeconds": 60, "targetSets": 3, "repMin": 1, "repMax": 1 }
+      ]
+    }
+  ]
+}
