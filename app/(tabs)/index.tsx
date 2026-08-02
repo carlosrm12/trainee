@@ -1,5 +1,4 @@
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
 import { Platform, StyleSheet } from "react-native";
 
 import { HelloWave } from "@/components/hello-wave";
@@ -8,26 +7,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Link } from "expo-router";
 
-// --- INICIO bloque temporal de diagnóstico (borrar antes del Paso 4) ---
-import { db } from "@/data/db/client";
-import { routineExercises, routines } from "@/drizzle/schema";
-// --- FIN bloque temporal de diagnóstico ---
-
 export default function HomeScreen() {
-  // --- INICIO bloque temporal de diagnóstico (borrar antes del Paso 4) ---
-  const [dbStatus, setDbStatus] = useState("cargando...");
-
-  useEffect(() => {
-    Promise.all([
-      db.select().from(routines),
-      db.select().from(routineExercises),
-    ]).then(([r, re]) => {
-      console.log("Rutinas:", r);
-      setDbStatus(`${r.length} rutinas, ${re.length} ejercicios de rutina`);
-    });
-  }, []);
-  // --- FIN bloque temporal de diagnóstico ---
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
