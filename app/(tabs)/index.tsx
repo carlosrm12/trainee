@@ -14,7 +14,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-bg-base px-4 pt-16">
+    <ScrollView
+      className="flex-1 bg-bg-base px-4 pt-16"
+      contentContainerStyle={{ paddingBottom: 60 }}
+    >
       <Text className="text-text-primary text-2xl font-bold mb-1">
         Hola, Carlos
       </Text>
