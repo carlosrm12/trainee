@@ -1,12 +1,19 @@
 import { useSessionHistory } from "@/features/history/useSessionHistory";
 import { SessionCard } from "@/shared/components/SessionCard";
 import { formatSessionDate } from "@/shared/utils/formatDate";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 export default function HistoryScreen() {
   const router = useRouter();
-  const { sessions, loading } = useSessionHistory();
+  const { sessions, loading, reload } = useSessionHistory();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   if (loading) {
     return (
