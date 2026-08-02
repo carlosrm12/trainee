@@ -20,9 +20,14 @@ export default function HomeScreen() {
       className="flex-1 bg-bg-base px-4 pt-16"
       contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <Text className="text-text-primary text-2xl font-bold mb-1">
-        Hola, Carlos
-      </Text>
+      <View className="flex-row items-center justify-between mb-1">
+        <Text className="text-text-primary text-2xl font-bold">
+          Hola, Carlos
+        </Text>
+        <Text className="text-accent" onPress={() => router.push("/history")}>
+          Historial →
+        </Text>
+      </View>
       <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
 
       {routines.length === 0 && (
