@@ -1,7 +1,13 @@
 // Entidades puras del dominio — sin dependencias de RN, SQLite ni Drizzle.
 // La UI y los repositorios se apoyan en estos tipos, nunca al revés.
 
-export type MuscleGroup = "chest" | "back" | "legs" | "shoulders" | "arms" | "core";
+export type MuscleGroup =
+  | "chest"
+  | "back"
+  | "legs"
+  | "shoulders"
+  | "arms"
+  | "core";
 
 export interface Exercise {
   id: string;
@@ -64,4 +70,9 @@ export interface WorkoutSessionRepository {
   logSet(set: Omit<SetLog, "id">): Promise<SetLog>;
   getHistory(limit?: number): Promise<WorkoutSession[]>;
   getSetHistoryForExercise(exerciseId: string): Promise<SetLog[]>;
+}
+
+export interface ExerciseRepository {
+  getAll(): Promise<Exercise[]>;
+  getById(id: string): Promise<Exercise | null>;
 }

@@ -1,8 +1,10 @@
 import { useRoutines } from "@/features/routines/useRoutines";
 import { RoutineCard } from "@/shared/components/RoutineCard";
+import { useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { routines, loading } = useRoutines();
 
   if (loading) {
@@ -34,10 +36,7 @@ export default function HomeScreen() {
           key={r.id}
           name={r.name}
           meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-          onPress={() => {
-            // El Paso 5 conecta esto a la pantalla de ejecución con timer
-            console.log("Empezar rutina:", r.id);
-          }}
+          onPress={() => router.push(`/execute/${r.id}`)}
         />
       ))}
     </ScrollView>
