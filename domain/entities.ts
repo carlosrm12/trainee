@@ -65,10 +65,13 @@ export interface RoutineRepository {
 export interface WorkoutSessionRepository {
   start(routineId: string): Promise<WorkoutSession>;
   getActive(): Promise<WorkoutSession | null>;
+  getById(id: string): Promise<WorkoutSession | null>;
   complete(id: string, notes: string | null): Promise<void>;
   discard(id: string): Promise<void>;
+  deleteSession(id: string): Promise<void>;
   logSet(set: Omit<SetLog, "id">): Promise<SetLog>;
   getHistory(limit?: number): Promise<WorkoutSession[]>;
+  getSetLogsForSession(sessionId: string): Promise<SetLog[]>;
   getSetHistoryForExercise(exerciseId: string): Promise<SetLog[]>;
 }
 

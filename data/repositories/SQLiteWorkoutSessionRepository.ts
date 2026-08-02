@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { randomUUID } from "expo-crypto";
 import type {
+  SessionStatus,
   SetLog,
   WorkoutSession,
   WorkoutSessionRepository,
@@ -38,6 +39,22 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
     };
   }
 
+  async getById(id: string): Promise<WorkoutSession | null> {
+    const rows = await db
+      .select()
+      .from(workoutSessions)
+      .where(eq(workoutSessions.id, id));
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      id: r.id,
+      routineId: r.routineId,
+      date: r.date,
+      status: r.status as SessionStatus,
+      notes: r.notes,
+    };
+  }
+
   async complete(id: string, notes: string | null): Promise<void> {
     await db
       .update(workoutSessions)
@@ -54,6 +71,11 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       .update(workoutSessions)
       .set({ status: "discarded" })
       .where(eq(workoutSessions.id, id));
+  }
+
+  async deleteSession(id: string): Promise<void> {
+    await db.delete(setLogs).where(eq(setLogs.sessionId, id));
+    await db.delete(workoutSessions).where(eq(workoutSessions.id, id));
   }
 
   async logSet(set: Omit<SetLog, "id">): Promise<SetLog> {
@@ -83,6 +105,21 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       date: r.date,
       status: "completed" as const,
       notes: r.notes,
+    }));
+  }
+
+  async getSetLogsForSession(sessionId: string): Promise<SetLog[]> {
+    const rows = await db
+      .select()
+      .from(setLogs)
+      .where(eq(setLogs.sessionId, sessionId));
+    return rows.map((r) => ({
+      id: r.id,
+      sessionId: r.sessionId,
+      routineExerciseId: r.routineExerciseId,
+      setNumber: r.setNumber,
+      weightKg: r.weightKg,
+      reps: r.reps,
     }));
   }
 
