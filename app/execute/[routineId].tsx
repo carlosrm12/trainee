@@ -1,6 +1,8 @@
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
+import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
+import { useRestTimer } from "@/shared/hooks/useRestTimer";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
@@ -11,14 +13,13 @@ export default function ExecuteRoutineScreen() {
 
   const execution = useExecuteRoutine(routineId);
   const { session, logSet, completeSession } = useWorkoutSession(routineId);
+  const rest = useRestTimer();
 
   const [currentSetNumber, setCurrentSetNumber] = useState(1);
   const [weightKg, setWeightKg] = useState(0);
   const [reps, setReps] = useState(0);
   const [routineFinished, setRoutineFinished] = useState(false);
 
-  // Cada vez que cambia el ejercicio actual, resetea el contador de series y
-  // precarga las reps con el mínimo del rango objetivo.
   useEffect(() => {
     if (!execution.currentStep) return;
     setCurrentSetNumber(1);
@@ -26,31 +27,32 @@ export default function ExecuteRoutineScreen() {
   }, [execution.currentStep?.id]);
 
   async function handleMarkSet() {
-    if (!execution.currentStep) return;
+    const step = execution.currentStep;
+    if (!step) return;
 
     await logSet({
-      routineExerciseId: execution.currentStep.id,
+      routineExerciseId: step.id,
       setNumber: currentSetNumber,
       weightKg,
       reps,
     });
 
-    const isLastSetOfExercise =
-      currentSetNumber >= execution.currentStep.targetSets;
+    const isLastSetOfExercise = currentSetNumber >= step.targetSets;
+    const isVeryLastSet = isLastSetOfExercise && execution.isLastStep;
 
-    if (!isLastSetOfExercise) {
-      setCurrentSetNumber((n) => n + 1);
-      return;
-    }
-
-    if (execution.isLastStep) {
+    if (isVeryLastSet) {
       await completeSession(null);
       setRoutineFinished(true);
       return;
     }
 
-    execution.goToNextExercise();
-    // el useEffect de arriba resetea currentSetNumber y reps al cambiar currentStep
+    rest.start(step.restSeconds, () => {
+      if (isLastSetOfExercise) {
+        execution.goToNextExercise();
+      } else {
+        setCurrentSetNumber((n) => n + 1);
+      }
+    });
   }
 
   if (execution.loading || !session) {
@@ -77,6 +79,35 @@ export default function ExecuteRoutineScreen() {
           <Text className="text-text-on-accent font-semibold">
             Volver al inicio
           </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // --- Pantalla de descanso (reemplaza el contenido normal mientras rest.active) ---
+  if (rest.active) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg-base px-6">
+        <Text className="text-text-primary text-xl font-bold mb-8">
+          Descanso
+        </Text>
+        <RestTimerRing remaining={rest.remaining} total={rest.total} />
+        <View className="flex-row gap-4 mt-10">
+          <Pressable
+            onPress={() => rest.adjust(-15)}
+            className="rounded-pill bg-bg-surface-alt px-5 py-3"
+          >
+            <Text className="text-text-primary font-semibold">-15s</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => rest.adjust(15)}
+            className="rounded-pill bg-bg-surface-alt px-5 py-3"
+          >
+            <Text className="text-text-primary font-semibold">+15s</Text>
+          </Pressable>
+        </View>
+        <Pressable onPress={rest.skip} className="mt-8">
+          <Text className="text-text-secondary underline">Saltar descanso</Text>
         </Pressable>
       </View>
     );
