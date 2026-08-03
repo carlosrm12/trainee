@@ -1,4 +1,5 @@
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
+import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLookup";
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
@@ -8,6 +9,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 export default function ExecuteRoutineScreen() {
+  const { getLastWeight } = useLastWeightLookup();
   const { routineId } = useLocalSearchParams<{ routineId: string }>();
   const router = useRouter();
 
@@ -24,6 +26,9 @@ export default function ExecuteRoutineScreen() {
     if (!execution.currentStep) return;
     setCurrentSetNumber(1);
     setReps(execution.currentStep.repMin);
+    getLastWeight(execution.currentStep.exercise.id).then((w) =>
+      setWeightKg(w ?? 0),
+    );
   }, [execution.currentStep?.id]);
 
   async function handleMarkSet() {
