@@ -44,6 +44,7 @@ export interface WorkoutSession {
   date: string;
   status: SessionStatus;
   notes: string | null;
+  lastRoutineExerciseId: string | null;
 }
 
 export interface SetLog {
@@ -73,6 +74,7 @@ export interface WorkoutSessionRepository {
   complete(id: string, notes: string | null): Promise<void>;
   discard(id: string): Promise<void>;
   deleteSession(id: string): Promise<void>;
+  updateLastPosition(id: string, routineExerciseId: string): Promise<void>;
   logSet(set: Omit<SetLog, "id">): Promise<SetLog>;
   getHistory(limit?: number): Promise<WorkoutSession[]>;
   getSetLogsForSession(sessionId: string): Promise<SetLog[]>;

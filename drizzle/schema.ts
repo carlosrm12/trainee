@@ -45,6 +45,7 @@ export const workoutSessions = sqliteTable("workout_sessions", {
   date: text("date").notNull(),
   status: text("status").notNull().default("in_progress"), // "in_progress" | "completed" | "discarded"
   notes: text("notes"),
+  lastRoutineExerciseId: text("last_routine_exercise_id"),
   startedAt: text("started_at")
     .notNull()
     .default(sql`(current_timestamp)`),

@@ -1,0 +1,1 @@
+ALTER TABLE `workout_sessions` ADD `last_routine_exercise_id` text;
