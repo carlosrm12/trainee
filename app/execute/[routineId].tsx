@@ -1,3 +1,5 @@
+import type { SetLog } from "@/domain/entities";
+import type { ExecutionStep } from "@/features/workout-session/useExecuteRoutine";
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
 import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLookup";
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
@@ -11,7 +13,14 @@ import {
 } from "@/shared/utils/weightConversion";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 export default function ExecuteRoutineScreen() {
   const { routineId } = useLocalSearchParams<{ routineId: string }>();
@@ -28,69 +37,83 @@ export default function ExecuteRoutineScreen() {
   const [reps, setReps] = useState(0);
   const [routineFinished, setRoutineFinished] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [sessionSetLogs, setSessionSetLogs] = useState<SetLog[]>([]);
+  const [showExerciseList, setShowExerciseList] = useState(false);
 
-  // Helper: prepara los campos (set/reps/peso) para el ejercicio que se le pasa.
-  // Se usa tanto al reanudar como al avanzar de ejercicio normalmente — un
-  // único punto de verdad, nada de efectos reactivos adivinando cuándo correr.
-  async function primeExercise(
-    routineExerciseId: string,
-    exerciseId: string,
-    weightMode: string,
-    repMin: number,
+  async function refreshSessionLogs(): Promise<SetLog[]> {
+    const logs = await getLoggedSets();
+    setSessionSetLogs(logs);
+    return logs;
+  }
+
+  // Carga (o crea por defecto) los valores de peso/reps para un set puntual de
+  // un ejercicio dado — reusa el dato ya guardado si existe, o calcula un
+  // default razonable si no. Es el único lugar que decide "qué mostrar".
+  async function loadSetValues(
+    step: ExecutionStep,
     setNumber: number,
+    logs: SetLog[],
   ) {
+    const existing = logs.find(
+      (l) => l.routineExerciseId === step.id && l.setNumber === setNumber,
+    );
     setCurrentSetNumber(setNumber);
-    setReps(repMin);
-    const lastWeight = await getLastWeight(exerciseId);
+    if (existing) {
+      setWeightKg(existing.weightKg);
+      setReps(existing.reps);
+      return;
+    }
+    setReps(step.repMin);
+    const lastWeight = await getLastWeight(step.exercise.id);
     setWeightKg(
-      lastWeight ?? (weightMode === "per_side" ? DEFAULT_BAR_WEIGHT_KG : 0),
+      lastWeight ??
+        (step.exercise.weightInputMode === "per_side"
+          ? DEFAULT_BAR_WEIGHT_KG
+          : 0),
     );
   }
 
-  // Corre UNA sola vez, cuando ya cargaron ejercicios y sesión. Calcula en qué
-  // ejercicio/set arrancar contando los SetLog ya existentes — sesión nueva
-  // da "ejercicio 0, set 1" naturalmente; sesión reanudada retoma donde quedó.
+  function jumpToExercise(index: number, logs: SetLog[]) {
+    const targetStep = execution.steps[index];
+    if (!targetStep) return;
+    execution.goToIndex(index);
+    const loggedForStep = logs.filter(
+      (l) => l.routineExerciseId === targetStep.id,
+    );
+    const setNumber =
+      loggedForStep.length < targetStep.targetSets
+        ? loggedForStep.length + 1
+        : 1;
+    loadSetValues(targetStep, setNumber, logs);
+  }
+
+  // Posicionamiento inicial: sesión nueva da "ejercicio 0, set 1" naturalmente
+  // (no hay logs); sesión reanudada retoma justo donde quedó.
   useEffect(() => {
     if (initialized) return;
     if (execution.loading || !session || execution.steps.length === 0) return;
 
     (async () => {
-      const loggedSets = await getLoggedSets();
-      const loggedCountByStep = new Map<string, number>();
-      for (const log of loggedSets) {
-        loggedCountByStep.set(
-          log.routineExerciseId,
-          (loggedCountByStep.get(log.routineExerciseId) ?? 0) + 1,
-        );
-      }
+      const logs = await refreshSessionLogs();
 
-      let resumeIndex = 0;
-      let resumeSetNumber = 1;
-      let allDone = true;
-
-      for (let i = 0; i < execution.steps.length; i++) {
-        const s = execution.steps[i];
-        const logged = loggedCountByStep.get(s.id) ?? 0;
-        if (logged < s.targetSets) {
-          resumeIndex = i;
-          resumeSetNumber = logged + 1;
-          allDone = false;
-          break;
-        }
-      }
+      const allDone = execution.steps.every(
+        (s) =>
+          logs.filter((l) => l.routineExerciseId === s.id).length >=
+          s.targetSets,
+      );
 
       if (allDone) {
         await completeSession(null);
         setRoutineFinished(true);
       } else {
-        execution.goToIndex(resumeIndex);
-        const resumeStep = execution.steps[resumeIndex];
-        await primeExercise(
-          resumeStep.id,
-          resumeStep.exercise.id,
-          resumeStep.exercise.weightInputMode,
-          resumeStep.repMin,
-          resumeSetNumber,
+        const firstIncompleteIndex = execution.steps.findIndex(
+          (s) =>
+            logs.filter((l) => l.routineExerciseId === s.id).length <
+            s.targetSets,
+        );
+        jumpToExercise(
+          firstIncompleteIndex === -1 ? 0 : firstIncompleteIndex,
+          logs,
         );
       }
       setInitialized(true);
@@ -101,38 +124,56 @@ export default function ExecuteRoutineScreen() {
     const step = execution.currentStep;
     if (!step) return;
 
+    const wasAlreadyLogged = sessionSetLogs.some(
+      (s) =>
+        s.routineExerciseId === step.id && s.setNumber === currentSetNumber,
+    );
+
     await logSet({
       routineExerciseId: step.id,
       setNumber: currentSetNumber,
       weightKg,
       reps,
     });
+    const updatedLogs = await refreshSessionLogs();
 
-    const isLastSetOfExercise = currentSetNumber >= step.targetSets;
-    const isVeryLastSet = isLastSetOfExercise && execution.isLastStep;
+    if (wasAlreadyLogged) {
+      // Edición de un set ya existente: guarda y se queda aquí, sin timer ni
+      // avance automático — el usuario está corrigiendo, no progresando.
+      Alert.alert(
+        "Set actualizado",
+        `Guardé el cambio en el Set ${currentSetNumber}.`,
+      );
+      return;
+    }
 
-    if (isVeryLastSet) {
+    const allDone = execution.steps.every(
+      (s) =>
+        updatedLogs.filter((l) => l.routineExerciseId === s.id).length >=
+        s.targetSets,
+    );
+
+    if (allDone) {
       await completeSession(null);
       setRoutineFinished(true);
       return;
     }
 
+    const isLastSetOfExercise = currentSetNumber >= step.targetSets;
+
     rest.start(step.restSeconds, () => {
-      if (isLastSetOfExercise) {
-        const nextIndex = execution.currentIndex + 1;
-        const nextStep = execution.steps[nextIndex];
-        execution.goToIndex(nextIndex);
-        if (nextStep) {
-          primeExercise(
-            nextStep.id,
-            nextStep.exercise.id,
-            nextStep.exercise.weightInputMode,
-            nextStep.repMin,
-            1,
-          );
-        }
-      } else {
+      if (!isLastSetOfExercise) {
         setCurrentSetNumber((n) => n + 1);
+        loadSetValues(step, currentSetNumber + 1, updatedLogs);
+        return;
+      }
+      const nextIncompleteIndex = execution.steps.findIndex(
+        (s) =>
+          updatedLogs.filter((l) => l.routineExerciseId === s.id).length <
+          s.targetSets,
+      );
+      if (nextIncompleteIndex !== -1) {
+        jumpToExercise(nextIncompleteIndex, updatedLogs);
       }
     });
   }
@@ -194,6 +235,51 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
+  if (showExerciseList) {
+    return (
+      <View className="flex-1 bg-bg-base px-6 pt-16">
+        <View className="flex-row items-center justify-between mb-6">
+          <Pressable onPress={() => setShowExerciseList(false)}>
+            <Text className="text-text-secondary text-2xl">✕</Text>
+          </Pressable>
+          <Text className="text-text-primary font-semibold">Ejercicios</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+          {execution.steps.map((s, i) => {
+            const logged = sessionSetLogs.filter(
+              (l) => l.routineExerciseId === s.id,
+            ).length;
+            const done = logged >= s.targetSets;
+            return (
+              <Pressable
+                key={s.id}
+                onPress={() => {
+                  jumpToExercise(i, sessionSetLogs);
+                  setShowExerciseList(false);
+                }}
+                className={`rounded-card border p-4 mb-3 bg-bg-surface ${
+                  i === execution.currentIndex
+                    ? "border-accent"
+                    : "border-border-subtle"
+                }`}
+              >
+                <Text className="text-text-primary font-semibold">
+                  {s.exercise.name}
+                </Text>
+                <Text
+                  className={`text-sm mt-1 ${done ? "text-success" : "text-text-secondary"}`}
+                >
+                  {logged}/{s.targetSets} sets {done ? "✓" : ""}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
+  }
+
   const step = execution.currentStep;
   if (!step) {
     return (
@@ -205,10 +291,17 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
-  const dots = Array.from(
-    { length: step.targetSets },
-    (_, i) => i < currentSetNumber - 1,
+  const loggedForCurrentStep = sessionSetLogs.filter(
+    (s) => s.routineExerciseId === step.id,
   );
+  const dotsData = Array.from({ length: step.targetSets }, (_, i) => {
+    const setNum = i + 1;
+    return {
+      setNum,
+      done: loggedForCurrentStep.some((l) => l.setNumber === setNum),
+      isCurrent: setNum === currentSetNumber,
+    };
+  });
 
   return (
     <View className="flex-1 bg-bg-base px-6 pt-16">
@@ -216,9 +309,11 @@ export default function ExecuteRoutineScreen() {
         <Pressable onPress={() => router.back()}>
           <Text className="text-text-secondary text-2xl">✕</Text>
         </Pressable>
-        <Text className="text-text-secondary">
-          Ejercicio {execution.currentIndex + 1} de {execution.totalSteps}
-        </Text>
+        <Pressable onPress={() => setShowExerciseList(true)}>
+          <Text className="text-accent">
+            Ejercicio {execution.currentIndex + 1} de {execution.totalSteps} ▾
+          </Text>
+        </Pressable>
         <View style={{ width: 24 }} />
       </View>
 
@@ -266,11 +361,17 @@ export default function ExecuteRoutineScreen() {
       </Pressable>
 
       <View className="flex-row justify-center gap-2 mt-6">
-        {dots.map((done, i) => (
-          <View
-            key={i}
-            className={`w-3 h-3 rounded-full ${done ? "bg-success" : "bg-bg-surface-alt"}`}
-          />
+        {dotsData.map((d) => (
+          <Pressable
+            key={d.setNum}
+            onPress={() => loadSetValues(step, d.setNum, sessionSetLogs)}
+          >
+            <View
+              className={`w-4 h-4 rounded-full ${d.done ? "bg-success" : "bg-bg-surface-alt"} ${
+                d.isCurrent ? "border-2 border-accent" : ""
+              }`}
+            />
+          </Pressable>
         ))}
       </View>
     </View>
