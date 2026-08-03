@@ -79,6 +79,21 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
   }
 
   async logSet(set: Omit<SetLog, "id">): Promise<SetLog> {
+    // Idempotente: si ya existe un set con este mismo número para este mismo
+    // ejercicio y sesión, lo reemplaza en vez de duplicarlo.
+    const existing = await db
+      .select()
+      .from(setLogs)
+      .where(eq(setLogs.sessionId, set.sessionId));
+    const duplicate = existing.find(
+      (r) =>
+        r.routineExerciseId === set.routineExerciseId &&
+        r.setNumber === set.setNumber,
+    );
+    if (duplicate) {
+      await db.delete(setLogs).where(eq(setLogs.id, duplicate.id));
+    }
+
     const id = randomUUID();
     await db.insert(setLogs).values({
       id,

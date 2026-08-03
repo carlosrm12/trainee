@@ -18,7 +18,8 @@ export default function ExecuteRoutineScreen() {
   const router = useRouter();
 
   const execution = useExecuteRoutine(routineId);
-  const { session, logSet, completeSession } = useWorkoutSession(routineId);
+  const { session, logSet, getLoggedSets, completeSession } =
+    useWorkoutSession(routineId);
   const { getLastWeight } = useLastWeightLookup();
   const rest = useRestTimer();
 
@@ -26,24 +27,75 @@ export default function ExecuteRoutineScreen() {
   const [weightKg, setWeightKg] = useState(0);
   const [reps, setReps] = useState(0);
   const [routineFinished, setRoutineFinished] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
+  // Helper: prepara los campos (set/reps/peso) para el ejercicio que se le pasa.
+  // Se usa tanto al reanudar como al avanzar de ejercicio normalmente — un
+  // único punto de verdad, nada de efectos reactivos adivinando cuándo correr.
+  async function primeExercise(
+    routineExerciseId: string,
+    exerciseId: string,
+    weightMode: string,
+    repMin: number,
+    setNumber: number,
+  ) {
+    setCurrentSetNumber(setNumber);
+    setReps(repMin);
+    const lastWeight = await getLastWeight(exerciseId);
+    setWeightKg(
+      lastWeight ?? (weightMode === "per_side" ? DEFAULT_BAR_WEIGHT_KG : 0),
+    );
+  }
+
+  // Corre UNA sola vez, cuando ya cargaron ejercicios y sesión. Calcula en qué
+  // ejercicio/set arrancar contando los SetLog ya existentes — sesión nueva
+  // da "ejercicio 0, set 1" naturalmente; sesión reanudada retoma donde quedó.
   useEffect(() => {
-    const currentStep = execution.currentStep;
-    if (!currentStep) return;
-    setCurrentSetNumber(1);
-    setReps(currentStep.repMin);
-    getLastWeight(currentStep.exercise.id).then((w) => {
-      if (w !== null) {
-        setWeightKg(w);
-      } else {
-        setWeightKg(
-          currentStep.exercise.weightInputMode === "per_side"
-            ? DEFAULT_BAR_WEIGHT_KG
-            : 0,
+    if (initialized) return;
+    if (execution.loading || !session || execution.steps.length === 0) return;
+
+    (async () => {
+      const loggedSets = await getLoggedSets();
+      const loggedCountByStep = new Map<string, number>();
+      for (const log of loggedSets) {
+        loggedCountByStep.set(
+          log.routineExerciseId,
+          (loggedCountByStep.get(log.routineExerciseId) ?? 0) + 1,
         );
       }
-    });
-  }, [execution.currentStep?.id]);
+
+      let resumeIndex = 0;
+      let resumeSetNumber = 1;
+      let allDone = true;
+
+      for (let i = 0; i < execution.steps.length; i++) {
+        const s = execution.steps[i];
+        const logged = loggedCountByStep.get(s.id) ?? 0;
+        if (logged < s.targetSets) {
+          resumeIndex = i;
+          resumeSetNumber = logged + 1;
+          allDone = false;
+          break;
+        }
+      }
+
+      if (allDone) {
+        await completeSession(null);
+        setRoutineFinished(true);
+      } else {
+        execution.goToIndex(resumeIndex);
+        const resumeStep = execution.steps[resumeIndex];
+        await primeExercise(
+          resumeStep.id,
+          resumeStep.exercise.id,
+          resumeStep.exercise.weightInputMode,
+          resumeStep.repMin,
+          resumeSetNumber,
+        );
+      }
+      setInitialized(true);
+    })();
+  }, [execution.loading, session, execution.steps.length, initialized]);
 
   async function handleMarkSet() {
     const step = execution.currentStep;
@@ -67,14 +119,25 @@ export default function ExecuteRoutineScreen() {
 
     rest.start(step.restSeconds, () => {
       if (isLastSetOfExercise) {
-        execution.goToNextExercise();
+        const nextIndex = execution.currentIndex + 1;
+        const nextStep = execution.steps[nextIndex];
+        execution.goToIndex(nextIndex);
+        if (nextStep) {
+          primeExercise(
+            nextStep.id,
+            nextStep.exercise.id,
+            nextStep.exercise.weightInputMode,
+            nextStep.repMin,
+            1,
+          );
+        }
       } else {
         setCurrentSetNumber((n) => n + 1);
       }
     });
   }
 
-  if (execution.loading || !session) {
+  if (execution.loading || !session || !initialized) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base">
         <ActivityIndicator color="#F5C518" />
@@ -103,7 +166,6 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
-  // --- Pantalla de descanso (reemplaza el contenido normal mientras rest.active) ---
   if (rest.active) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">

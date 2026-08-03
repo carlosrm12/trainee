@@ -1,11 +1,38 @@
 import { useRoutines } from "@/features/routines/useRoutines";
+import { useActiveSession } from "@/features/workout-session/useActiveSession";
 import { RoutineCard } from "@/shared/components/RoutineCard";
-import { useRouter } from "expo-router";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { routines, loading } = useRoutines();
+  const { activeSession, discard, recheck } = useActiveSession();
+
+  useFocusEffect(
+    useCallback(() => {
+      recheck();
+    }, [recheck]),
+  );
+
+  function handleStartRoutine(routineId: string) {
+    if (activeSession && activeSession.routineId !== routineId) {
+      Alert.alert(
+        "Tienes un entrenamiento sin terminar",
+        `Termina o descarta "${activeSession.routineName}" antes de empezar otra rutina.`,
+      );
+      return;
+    }
+    router.push(`/execute/${routineId}`);
+  }
 
   if (loading) {
     return (
@@ -30,6 +57,35 @@ export default function HomeScreen() {
       </View>
       <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
 
+      {activeSession && (
+        <View className="rounded-card border border-accent bg-bg-surface-alt p-4 mb-6">
+          <Text className="text-text-primary font-semibold">
+            Entrenamiento sin terminar
+          </Text>
+          <Text className="text-text-secondary text-sm mt-1">
+            {activeSession.routineName}
+          </Text>
+          <View className="flex-row gap-3 mt-3">
+            <Pressable
+              onPress={() => router.push(`/execute/${activeSession.routineId}`)}
+              className="rounded-pill bg-accent px-4 py-2"
+            >
+              <Text className="text-text-on-accent font-semibold">
+                Continuar
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={discard}
+              className="rounded-pill bg-bg-surface border border-border-subtle px-4 py-2"
+            >
+              <Text className="text-text-secondary font-semibold">
+                Descartar
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       {routines.length === 0 && (
         <Text className="text-text-secondary">
           Todavía no tienes rutinas cargadas.
@@ -41,7 +97,7 @@ export default function HomeScreen() {
           key={r.id}
           name={r.name}
           meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-          onPress={() => router.push(`/execute/${r.id}`)}
+          onPress={() => handleStartRoutine(r.id)}
         />
       ))}
     </ScrollView>

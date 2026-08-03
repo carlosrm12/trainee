@@ -48,6 +48,13 @@ export function useExecuteRoutine(routineId: string) {
     setCurrentIndex((i) => Math.max(i - 1, 0));
   }, []);
 
+  const goToIndex = useCallback(
+    (index: number) => {
+      setCurrentIndex(Math.max(0, Math.min(index, steps.length - 1)));
+    },
+    [steps.length],
+  );
+
   return {
     loading,
     steps,
@@ -57,5 +64,6 @@ export function useExecuteRoutine(routineId: string) {
     isLastStep,
     goToNextExercise,
     goToPreviousExercise,
+    goToIndex,
   };
 }

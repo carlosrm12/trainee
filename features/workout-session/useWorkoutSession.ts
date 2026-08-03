@@ -9,16 +9,30 @@ export function useWorkoutSession(routineId: string) {
   const started = useRef(false);
 
   useEffect(() => {
-    // Guard contra doble-ejecución de useEffect en modo desarrollo (React StrictMode),
-    // que si no crearía dos WorkoutSession por cada entrada a esta pantalla.
     if (started.current) return;
     started.current = true;
-    sessionRepo.start(routineId).then(setSession);
+
+    (async () => {
+      // Si ya hay una sesión activa para esta misma rutina, la reusamos
+      // en vez de crear una nueva (esto es lo que permite reanudar).
+      const active = await sessionRepo.getActive();
+      if (active && active.routineId === routineId) {
+        setSession(active);
+      } else {
+        const newSession = await sessionRepo.start(routineId);
+        setSession(newSession);
+      }
+    })();
   }, [routineId]);
 
   async function logSet(input: Omit<SetLog, "id" | "sessionId">) {
     if (!session) return null;
     return sessionRepo.logSet({ ...input, sessionId: session.id });
+  }
+
+  async function getLoggedSets(): Promise<SetLog[]> {
+    if (!session) return [];
+    return sessionRepo.getSetLogsForSession(session.id);
   }
 
   async function completeSession(notes: string | null = null) {
@@ -31,5 +45,5 @@ export function useWorkoutSession(routineId: string) {
     await sessionRepo.discard(session.id);
   }
 
-  return { session, logSet, completeSession, discardSession };
+  return { session, logSet, getLoggedSets, completeSession, discardSession };
 }
