@@ -63,6 +63,7 @@ export const setLogs = sqliteTable("set_logs", {
   setNumber: integer("set_number").notNull(),
   weightKg: real("weight_kg").notNull(), // siempre en kg, la conversión a lb es solo de UI
   reps: integer("reps").notNull(),
+  isWarmup: integer("is_warmup", { mode: "boolean" }).notNull().default(false),
   completedAt: text("completed_at")
     .notNull()
     .default(sql`(current_timestamp)`),

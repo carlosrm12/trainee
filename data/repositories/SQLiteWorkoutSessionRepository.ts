@@ -79,8 +79,9 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
   }
 
   async logSet(set: Omit<SetLog, "id">): Promise<SetLog> {
-    // Idempotente: si ya existe un set con este mismo número para este mismo
-    // ejercicio y sesión, lo reemplaza en vez de duplicarlo.
+    // Idempotente: una serie de trabajo y una de calentamiento pueden compartir
+    // el mismo setNumber sin chocar, porque isWarmup también forma parte de
+    // la clave de duplicado.
     const existing = await db
       .select()
       .from(setLogs)
@@ -88,7 +89,8 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
     const duplicate = existing.find(
       (r) =>
         r.routineExerciseId === set.routineExerciseId &&
-        r.setNumber === set.setNumber,
+        r.setNumber === set.setNumber &&
+        r.isWarmup === set.isWarmup,
     );
     if (duplicate) {
       await db.delete(setLogs).where(eq(setLogs.id, duplicate.id));
@@ -102,6 +104,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       setNumber: set.setNumber,
       weightKg: set.weightKg,
       reps: set.reps,
+      isWarmup: set.isWarmup,
     });
     return { id, ...set };
   }
@@ -135,6 +138,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       setNumber: r.setNumber,
       weightKg: r.weightKg,
       reps: r.reps,
+      isWarmup: r.isWarmup,
     }));
   }
 
@@ -157,6 +161,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
         setNumber: r.setNumber,
         weightKg: r.weightKg,
         reps: r.reps,
+        isWarmup: r.isWarmup,
       }));
   }
 }

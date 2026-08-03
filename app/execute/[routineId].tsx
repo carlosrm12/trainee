@@ -22,6 +22,19 @@ import {
   View,
 } from "react-native";
 
+// Helper: sets "de trabajo" (excluye calentamiento) para un ejercicio dado.
+function workingSetsFor(logs: SetLog[], routineExerciseId: string) {
+  return logs.filter(
+    (l) => l.routineExerciseId === routineExerciseId && !l.isWarmup,
+  );
+}
+
+function warmupSetsFor(logs: SetLog[], routineExerciseId: string) {
+  return logs
+    .filter((l) => l.routineExerciseId === routineExerciseId && l.isWarmup)
+    .sort((a, b) => a.setNumber - b.setNumber);
+}
+
 export default function ExecuteRoutineScreen() {
   const { routineId } = useLocalSearchParams<{ routineId: string }>();
   const router = useRouter();
@@ -46,16 +59,15 @@ export default function ExecuteRoutineScreen() {
     return logs;
   }
 
-  // Carga (o crea por defecto) los valores de peso/reps para un set puntual de
-  // un ejercicio dado — reusa el dato ya guardado si existe, o calcula un
-  // default razonable si no. Es el único lugar que decide "qué mostrar".
+  // Carga (o crea por defecto) los valores de peso/reps para un set de TRABAJO
+  // puntual de un ejercicio dado. Los calentamientos nunca pasan por acá.
   async function loadSetValues(
     step: ExecutionStep,
     setNumber: number,
     logs: SetLog[],
   ) {
-    const existing = logs.find(
-      (l) => l.routineExerciseId === step.id && l.setNumber === setNumber,
+    const existing = workingSetsFor(logs, step.id).find(
+      (l) => l.setNumber === setNumber,
     );
     setCurrentSetNumber(setNumber);
     if (existing) {
@@ -77,9 +89,7 @@ export default function ExecuteRoutineScreen() {
     const targetStep = execution.steps[index];
     if (!targetStep) return;
     execution.goToIndex(index);
-    const loggedForStep = logs.filter(
-      (l) => l.routineExerciseId === targetStep.id,
-    );
+    const loggedForStep = workingSetsFor(logs, targetStep.id);
     const setNumber =
       loggedForStep.length < targetStep.targetSets
         ? loggedForStep.length + 1
@@ -87,8 +97,6 @@ export default function ExecuteRoutineScreen() {
     loadSetValues(targetStep, setNumber, logs);
   }
 
-  // Posicionamiento inicial: sesión nueva da "ejercicio 0, set 1" naturalmente
-  // (no hay logs); sesión reanudada retoma justo donde quedó.
   useEffect(() => {
     if (initialized) return;
     if (execution.loading || !session || execution.steps.length === 0) return;
@@ -97,9 +105,7 @@ export default function ExecuteRoutineScreen() {
       const logs = await refreshSessionLogs();
 
       const allDone = execution.steps.every(
-        (s) =>
-          logs.filter((l) => l.routineExerciseId === s.id).length >=
-          s.targetSets,
+        (s) => workingSetsFor(logs, s.id).length >= s.targetSets,
       );
 
       if (allDone) {
@@ -107,9 +113,7 @@ export default function ExecuteRoutineScreen() {
         setRoutineFinished(true);
       } else {
         const firstIncompleteIndex = execution.steps.findIndex(
-          (s) =>
-            logs.filter((l) => l.routineExerciseId === s.id).length <
-            s.targetSets,
+          (s) => workingSetsFor(logs, s.id).length < s.targetSets,
         );
         jumpToExercise(
           firstIncompleteIndex === -1 ? 0 : firstIncompleteIndex,
@@ -120,13 +124,26 @@ export default function ExecuteRoutineScreen() {
     })();
   }, [execution.loading, session, execution.steps.length, initialized]);
 
+  async function handleAddWarmup() {
+    const step = execution.currentStep;
+    if (!step) return;
+    const nextWarmupNumber = warmupSetsFor(sessionSetLogs, step.id).length + 1;
+    await logSet({
+      routineExerciseId: step.id,
+      setNumber: nextWarmupNumber,
+      weightKg,
+      reps,
+      isWarmup: true,
+    });
+    await refreshSessionLogs();
+  }
+
   async function handleMarkSet() {
     const step = execution.currentStep;
     if (!step) return;
 
-    const wasAlreadyLogged = sessionSetLogs.some(
-      (s) =>
-        s.routineExerciseId === step.id && s.setNumber === currentSetNumber,
+    const wasAlreadyLogged = workingSetsFor(sessionSetLogs, step.id).some(
+      (s) => s.setNumber === currentSetNumber,
     );
 
     await logSet({
@@ -134,12 +151,11 @@ export default function ExecuteRoutineScreen() {
       setNumber: currentSetNumber,
       weightKg,
       reps,
+      isWarmup: false,
     });
     const updatedLogs = await refreshSessionLogs();
 
     if (wasAlreadyLogged) {
-      // Edición de un set ya existente: guarda y se queda aquí, sin timer ni
-      // avance automático — el usuario está corrigiendo, no progresando.
       Alert.alert(
         "Set actualizado",
         `Guardé el cambio en el Set ${currentSetNumber}.`,
@@ -148,9 +164,7 @@ export default function ExecuteRoutineScreen() {
     }
 
     const allDone = execution.steps.every(
-      (s) =>
-        updatedLogs.filter((l) => l.routineExerciseId === s.id).length >=
-        s.targetSets,
+      (s) => workingSetsFor(updatedLogs, s.id).length >= s.targetSets,
     );
 
     if (allDone) {
@@ -163,14 +177,11 @@ export default function ExecuteRoutineScreen() {
 
     rest.start(step.restSeconds, () => {
       if (!isLastSetOfExercise) {
-        setCurrentSetNumber((n) => n + 1);
         loadSetValues(step, currentSetNumber + 1, updatedLogs);
         return;
       }
       const nextIncompleteIndex = execution.steps.findIndex(
-        (s) =>
-          updatedLogs.filter((l) => l.routineExerciseId === s.id).length <
-          s.targetSets,
+        (s) => workingSetsFor(updatedLogs, s.id).length < s.targetSets,
       );
       if (nextIncompleteIndex !== -1) {
         jumpToExercise(nextIncompleteIndex, updatedLogs);
@@ -247,9 +258,7 @@ export default function ExecuteRoutineScreen() {
         </View>
         <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
           {execution.steps.map((s, i) => {
-            const logged = sessionSetLogs.filter(
-              (l) => l.routineExerciseId === s.id,
-            ).length;
+            const logged = workingSetsFor(sessionSetLogs, s.id).length;
             const done = logged >= s.targetSets;
             return (
               <Pressable
@@ -291,14 +300,13 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
-  const loggedForCurrentStep = sessionSetLogs.filter(
-    (s) => s.routineExerciseId === step.id,
-  );
+  const workingForCurrentStep = workingSetsFor(sessionSetLogs, step.id);
+  const warmupsForCurrentStep = warmupSetsFor(sessionSetLogs, step.id);
   const dotsData = Array.from({ length: step.targetSets }, (_, i) => {
     const setNum = i + 1;
     return {
       setNum,
-      done: loggedForCurrentStep.some((l) => l.setNumber === setNum),
+      done: workingForCurrentStep.some((l) => l.setNumber === setNum),
       isCurrent: setNum === currentSetNumber,
     };
   });
@@ -324,7 +332,24 @@ export default function ExecuteRoutineScreen() {
         grupo: {step.exercise.muscleGroup}
       </Text>
 
-      <Text className="text-text-secondary mt-8">
+      {warmupsForCurrentStep.length > 0 && (
+        <View className="mt-4">
+          <Text className="text-text-secondary text-xs">Calentamiento</Text>
+          <Text className="text-text-secondary text-sm mt-1">
+            {warmupsForCurrentStep
+              .map((w) => `${w.weightKg}kg×${w.reps}`)
+              .join("  ·  ")}
+          </Text>
+        </View>
+      )}
+
+      <Pressable onPress={handleAddWarmup} className="mt-3">
+        <Text className="text-text-secondary text-sm underline">
+          + Agregar calentamiento ({weightKg}kg × {reps})
+        </Text>
+      </Pressable>
+
+      <Text className="text-text-secondary mt-6">
         Set {currentSetNumber} de {step.targetSets} · objetivo {step.repMin}-
         {step.repMax} reps
       </Text>

@@ -24,7 +24,9 @@ export function useExerciseProgress(exerciseId: string) {
     const exercise = await exerciseRepo.getById(exerciseId);
     setExerciseName(exercise?.name ?? "Ejercicio");
 
-    const allSets = await sessionRepo.getSetHistoryForExercise(exerciseId);
+    const allSets = (
+      await sessionRepo.getSetHistoryForExercise(exerciseId)
+    ).filter((s) => !s.isWarmup);
 
     // Agrupa por sesión (un SetLog no trae la fecha directo, solo sessionId)
     const bySession = new Map<string, SetLog[]>();

@@ -53,6 +53,7 @@ export interface SetLog {
   setNumber: number;
   weightKg: number;
   reps: number;
+  isWarmup: boolean;
 }
 
 // Contrato que cualquier repositorio (SQLite hoy, API mañana) debe cumplir.

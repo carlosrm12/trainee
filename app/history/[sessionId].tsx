@@ -99,7 +99,8 @@ export default function SessionDetailScreen() {
           </Pressable>
           {g.sets.map((s) => (
             <Text key={s.id} className="text-text-secondary">
-              Set {s.setNumber}: {s.weightKg}kg × {s.reps} reps
+              {s.isWarmup ? "Calentamiento" : `Set ${s.setNumber}`}:{" "}
+              {s.weightKg}kg × {s.reps} reps
             </Text>
           ))}
         </View>
