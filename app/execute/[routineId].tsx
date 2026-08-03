@@ -40,7 +40,7 @@ export default function ExecuteRoutineScreen() {
   const router = useRouter();
 
   const execution = useExecuteRoutine(routineId);
-  const { session, logSet, getLoggedSets, completeSession } =
+  const { session, logSet, getLoggedSets, updatePosition, completeSession } =
     useWorkoutSession(routineId);
   const { getLastWeight } = useLastWeightLookup();
   const rest = useRestTimer();
@@ -89,6 +89,7 @@ export default function ExecuteRoutineScreen() {
     const targetStep = execution.steps[index];
     if (!targetStep) return;
     execution.goToIndex(index);
+    updatePosition(targetStep.id);
     const loggedForStep = workingSetsFor(logs, targetStep.id);
     const setNumber =
       loggedForStep.length < targetStep.targetSets
@@ -112,13 +113,26 @@ export default function ExecuteRoutineScreen() {
         await completeSession(null);
         setRoutineFinished(true);
       } else {
-        const firstIncompleteIndex = execution.steps.findIndex(
-          (s) => workingSetsFor(logs, s.id).length < s.targetSets,
-        );
-        jumpToExercise(
-          firstIncompleteIndex === -1 ? 0 : firstIncompleteIndex,
-          logs,
-        );
+        // Prioriza retomar exactamente donde estabas parado. Solo cae a
+        // "primer ejercicio incompleto" si nunca se guardó posición, o si
+        // ese ejercicio en particular ya quedó completo (por edición manual).
+        const lastIndex = session.lastRoutineExerciseId
+          ? execution.steps.findIndex(
+              (s) => s.id === session.lastRoutineExerciseId,
+            )
+          : -1;
+        const lastStillIncomplete =
+          lastIndex !== -1 &&
+          workingSetsFor(logs, execution.steps[lastIndex].id).length <
+            execution.steps[lastIndex].targetSets;
+
+        const resumeIndex = lastStillIncomplete
+          ? lastIndex
+          : execution.steps.findIndex(
+              (s) => workingSetsFor(logs, s.id).length < s.targetSets,
+            );
+
+        jumpToExercise(resumeIndex === -1 ? 0 : resumeIndex, logs);
       }
       setInitialized(true);
     })();

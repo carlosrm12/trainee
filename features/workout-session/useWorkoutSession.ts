@@ -13,8 +13,6 @@ export function useWorkoutSession(routineId: string) {
     started.current = true;
 
     (async () => {
-      // Si ya hay una sesión activa para esta misma rutina, la reusamos
-      // en vez de crear una nueva (esto es lo que permite reanudar).
       const active = await sessionRepo.getActive();
       if (active && active.routineId === routineId) {
         setSession(active);
@@ -35,6 +33,11 @@ export function useWorkoutSession(routineId: string) {
     return sessionRepo.getSetLogsForSession(session.id);
   }
 
+  async function updatePosition(routineExerciseId: string) {
+    if (!session) return;
+    await sessionRepo.updateLastPosition(session.id, routineExerciseId);
+  }
+
   async function completeSession(notes: string | null = null) {
     if (!session) return;
     await sessionRepo.complete(session.id, notes);
@@ -45,5 +48,12 @@ export function useWorkoutSession(routineId: string) {
     await sessionRepo.discard(session.id);
   }
 
-  return { session, logSet, getLoggedSets, completeSession, discardSession };
+  return {
+    session,
+    logSet,
+    getLoggedSets,
+    updatePosition,
+    completeSession,
+    discardSession,
+  };
 }

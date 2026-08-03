@@ -20,7 +20,14 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
     await db
       .insert(workoutSessions)
       .values({ id, routineId, date, status: "in_progress" });
-    return { id, routineId, date, status: "in_progress", notes: null };
+    return {
+      id,
+      routineId,
+      date,
+      status: "in_progress",
+      notes: null,
+      lastRoutineExerciseId: null,
+    };
   }
 
   async getActive(): Promise<WorkoutSession | null> {
@@ -36,6 +43,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       date: r.date,
       status: "in_progress",
       notes: r.notes,
+      lastRoutineExerciseId: r.lastRoutineExerciseId,
     };
   }
 
@@ -52,6 +60,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       date: r.date,
       status: r.status as SessionStatus,
       notes: r.notes,
+      lastRoutineExerciseId: r.lastRoutineExerciseId,
     };
   }
 
@@ -78,10 +87,17 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
     await db.delete(workoutSessions).where(eq(workoutSessions.id, id));
   }
 
+  async updateLastPosition(
+    id: string,
+    routineExerciseId: string,
+  ): Promise<void> {
+    await db
+      .update(workoutSessions)
+      .set({ lastRoutineExerciseId: routineExerciseId })
+      .where(eq(workoutSessions.id, id));
+  }
+
   async logSet(set: Omit<SetLog, "id">): Promise<SetLog> {
-    // Idempotente: una serie de trabajo y una de calentamiento pueden compartir
-    // el mismo setNumber sin chocar, porque isWarmup también forma parte de
-    // la clave de duplicado.
     const existing = await db
       .select()
       .from(setLogs)
@@ -123,6 +139,7 @@ export class SQLiteWorkoutSessionRepository implements WorkoutSessionRepository 
       date: r.date,
       status: "completed" as const,
       notes: r.notes,
+      lastRoutineExerciseId: r.lastRoutineExerciseId,
     }));
   }
 
