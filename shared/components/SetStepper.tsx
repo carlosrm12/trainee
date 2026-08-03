@@ -6,6 +6,7 @@ type SetStepperProps = {
   unit?: string;
   step: number;
   min?: number;
+  helperText?: string;
   onChange: (value: number) => void;
 };
 
@@ -15,6 +16,7 @@ export function SetStepper({
   unit,
   step,
   min = 0,
+  helperText,
   onChange,
 }: SetStepperProps) {
   return (
@@ -26,6 +28,11 @@ export function SetStepper({
           <Text className="text-2xl text-text-secondary"> {unit}</Text>
         ) : null}
       </Text>
+      {helperText ? (
+        <Text className="text-text-secondary text-xs mt-1">{helperText}</Text>
+      ) : (
+        <View style={{ height: 16 }} />
+      )}
       <View className="flex-row gap-3 mt-3">
         <Pressable
           onPress={() => onChange(Math.max(min, value - step))}

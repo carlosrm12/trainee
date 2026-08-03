@@ -174,19 +174,14 @@ export default function ExecuteRoutineScreen() {
 
       <View className="flex-row gap-4 mt-4">
         {step.exercise.weightInputMode === "per_side" ? (
-          <View className="flex-1">
-            <SetStepper
-              label="Peso por lado"
-              value={totalToPerSide(weightKg)}
-              unit="kg"
-              step={1.25}
-              onChange={(perSide) => setWeightKg(perSideToTotal(perSide))}
-            />
-            <Text className="text-text-secondary text-xs text-center mt-1">
-              Total: {weightKg}kg (barra {DEFAULT_BAR_WEIGHT_KG}kg + 2×
-              {totalToPerSide(weightKg)}kg)
-            </Text>
-          </View>
+          <SetStepper
+            label="Peso por lado"
+            value={totalToPerSide(weightKg)}
+            unit="kg"
+            step={2.5}
+            helperText={`Total: ${weightKg}kg`}
+            onChange={(perSide) => setWeightKg(perSideToTotal(perSide))}
+          />
         ) : (
           <SetStepper
             label="Peso"
