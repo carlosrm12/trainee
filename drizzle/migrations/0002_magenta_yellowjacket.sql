@@ -1,0 +1,1 @@
+ALTER TABLE `set_logs` ADD `is_warmup` integer DEFAULT false NOT NULL;

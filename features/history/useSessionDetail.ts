@@ -67,8 +67,12 @@ export function useSessionDetail(sessionId: string) {
     setRoutineName(routine?.name ?? "Rutina eliminada");
     setDateIso(session.date);
     setGroups(orderedGroups);
-    setTotalSets(setLogs.length);
-    setTotalVolumeKg(setLogs.reduce((sum, s) => sum + s.weightKg * s.reps, 0));
+
+    const workingSets = setLogs.filter((s) => !s.isWarmup);
+    setTotalSets(workingSets.length);
+    setTotalVolumeKg(
+      workingSets.reduce((sum, s) => sum + s.weightKg * s.reps, 0),
+    );
     setLoading(false);
   }, [sessionId]);
 

@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { openDatabaseSync } from "expo-sqlite";
 import * as schema from "../../drizzle/schema";
 
-const sqlite = openDatabaseSync("trainlog-v3.db", {
+const sqlite = openDatabaseSync("trainlog-v4.db", {
   enableChangeListener: true,
 });
 
