@@ -1,0 +1,1 @@
+ALTER TABLE `exercises` ADD `weight_input_mode` text DEFAULT 'total' NOT NULL;
