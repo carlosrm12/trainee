@@ -3,6 +3,7 @@ import type {
   Exercise,
   ExerciseRepository,
   MuscleGroup,
+  WeightInputMode,
 } from "../../domain/entities";
 import { exercises } from "../../drizzle/schema";
 import { db } from "../db/client";
@@ -15,6 +16,7 @@ export class SQLiteExerciseRepository implements ExerciseRepository {
       name: r.name,
       muscleGroup: r.muscleGroup as MuscleGroup,
       isCustom: r.isCustom,
+      weightInputMode: r.weightInputMode as WeightInputMode,
     }));
   }
 
@@ -27,6 +29,14 @@ export class SQLiteExerciseRepository implements ExerciseRepository {
       name: r.name,
       muscleGroup: r.muscleGroup as MuscleGroup,
       isCustom: r.isCustom,
+      weightInputMode: r.weightInputMode as WeightInputMode,
     };
+  }
+
+  async update(
+    id: string,
+    changes: Partial<Omit<Exercise, "id">>,
+  ): Promise<void> {
+    await db.update(exercises).set(changes).where(eq(exercises.id, id));
   }
 }

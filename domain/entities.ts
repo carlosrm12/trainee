@@ -9,11 +9,14 @@ export type MuscleGroup =
   | "arms"
   | "core";
 
+export type WeightInputMode = "total" | "per_side";
+
 export interface Exercise {
   id: string;
   name: string;
   muscleGroup: MuscleGroup;
   isCustom: boolean;
+  weightInputMode: WeightInputMode;
 }
 
 export interface Routine {
@@ -78,4 +81,5 @@ export interface WorkoutSessionRepository {
 export interface ExerciseRepository {
   getAll(): Promise<Exercise[]>;
   getById(id: string): Promise<Exercise | null>;
+  update(id: string, changes: Partial<Omit<Exercise, "id">>): Promise<void>;
 }

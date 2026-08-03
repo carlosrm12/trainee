@@ -5,15 +5,16 @@ import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const exercises = sqliteTable("exercises", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  muscleGroup: text("muscle_group").notNull(),
+  muscleGroup: text("muscle_group").notNull(), // "chest" | "back" | "legs" | "shoulders" | "arms" | "core"
   isCustom: integer("is_custom", { mode: "boolean" }).notNull().default(false),
+  weightInputMode: text("weight_input_mode").notNull().default("total"), // "total" | "per_side"
 });
 
 // Rutinas (una por día de la semana, ej. "Lunes - Superior A")
 export const routines = sqliteTable("routines", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  dayOfWeek: integer("day_of_week"),
+  dayOfWeek: integer("day_of_week"), // 0-6, null si no está asignada a un día fijo
   createdAt: text("created_at")
     .notNull()
     .default(sql`(current_timestamp)`),
@@ -42,7 +43,7 @@ export const workoutSessions = sqliteTable("workout_sessions", {
     .notNull()
     .references(() => routines.id),
   date: text("date").notNull(),
-  status: text("status").notNull().default("in_progress"),
+  status: text("status").notNull().default("in_progress"), // "in_progress" | "completed" | "discarded"
   notes: text("notes"),
   startedAt: text("started_at")
     .notNull()
@@ -60,7 +61,7 @@ export const setLogs = sqliteTable("set_logs", {
     .notNull()
     .references(() => routineExercises.id),
   setNumber: integer("set_number").notNull(),
-  weightKg: real("weight_kg").notNull(),
+  weightKg: real("weight_kg").notNull(), // siempre en kg, la conversión a lb es solo de UI
   reps: integer("reps").notNull(),
   completedAt: text("completed_at")
     .notNull()

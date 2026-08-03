@@ -3,6 +3,10 @@ import { exercises, routineExercises, routines } from "../drizzle/schema";
 import { db } from "./db/client";
 import seedData from "./seed/rutina-seed-lunes-viernes.json";
 
+/**
+ * Idempotente: si ya hay rutinas cargadas, no hace nada.
+ * Se llama una vez al arrancar la app (ver app/_layout.tsx).
+ */
 export async function seedInitialData(): Promise<void> {
   const existing = await db.select().from(routines).limit(1);
   if (existing.length > 0) return;
@@ -13,6 +17,7 @@ export async function seedInitialData(): Promise<void> {
       name: ex.name,
       muscleGroup: ex.muscleGroup,
       isCustom: false,
+      weightInputMode: ex.weightInputMode ?? "total",
     });
   }
 

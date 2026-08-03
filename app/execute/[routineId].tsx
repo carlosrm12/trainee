@@ -4,17 +4,22 @@ import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession"
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
+import {
+  DEFAULT_BAR_WEIGHT_KG,
+  perSideToTotal,
+  totalToPerSide,
+} from "@/shared/utils/weightConversion";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 export default function ExecuteRoutineScreen() {
-  const { getLastWeight } = useLastWeightLookup();
   const { routineId } = useLocalSearchParams<{ routineId: string }>();
   const router = useRouter();
 
   const execution = useExecuteRoutine(routineId);
   const { session, logSet, completeSession } = useWorkoutSession(routineId);
+  const { getLastWeight } = useLastWeightLookup();
   const rest = useRestTimer();
 
   const [currentSetNumber, setCurrentSetNumber] = useState(1);
@@ -23,12 +28,21 @@ export default function ExecuteRoutineScreen() {
   const [routineFinished, setRoutineFinished] = useState(false);
 
   useEffect(() => {
-    if (!execution.currentStep) return;
+    const currentStep = execution.currentStep;
+    if (!currentStep) return;
     setCurrentSetNumber(1);
-    setReps(execution.currentStep.repMin);
-    getLastWeight(execution.currentStep.exercise.id).then((w) =>
-      setWeightKg(w ?? 0),
-    );
+    setReps(currentStep.repMin);
+    getLastWeight(currentStep.exercise.id).then((w) => {
+      if (w !== null) {
+        setWeightKg(w);
+      } else {
+        setWeightKg(
+          currentStep.exercise.weightInputMode === "per_side"
+            ? DEFAULT_BAR_WEIGHT_KG
+            : 0,
+        );
+      }
+    });
   }, [execution.currentStep?.id]);
 
   async function handleMarkSet() {
@@ -159,13 +173,29 @@ export default function ExecuteRoutineScreen() {
       </Text>
 
       <View className="flex-row gap-4 mt-4">
-        <SetStepper
-          label="Peso"
-          value={weightKg}
-          unit="kg"
-          step={2.5}
-          onChange={setWeightKg}
-        />
+        {step.exercise.weightInputMode === "per_side" ? (
+          <View className="flex-1">
+            <SetStepper
+              label="Peso por lado"
+              value={totalToPerSide(weightKg)}
+              unit="kg"
+              step={1.25}
+              onChange={(perSide) => setWeightKg(perSideToTotal(perSide))}
+            />
+            <Text className="text-text-secondary text-xs text-center mt-1">
+              Total: {weightKg}kg (barra {DEFAULT_BAR_WEIGHT_KG}kg + 2×
+              {totalToPerSide(weightKg)}kg)
+            </Text>
+          </View>
+        ) : (
+          <SetStepper
+            label="Peso"
+            value={weightKg}
+            unit="kg"
+            step={2.5}
+            onChange={setWeightKg}
+          />
+        )}
         <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />
       </View>
 
