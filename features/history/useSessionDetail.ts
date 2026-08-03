@@ -10,6 +10,7 @@ const exerciseRepo = new SQLiteExerciseRepository();
 
 export type ExerciseGroup = {
   routineExerciseId: string;
+  exerciseId: string;
   exerciseName: string;
   sets: SetLog[];
 };
@@ -45,6 +46,7 @@ export function useSessionDetail(sessionId: string) {
       const exercise = await exerciseRepo.getById(re.exerciseId);
       groupsMap.set(re.id, {
         routineExerciseId: re.id,
+        exerciseId: re.exerciseId,
         exerciseName: exercise?.name ?? "Ejercicio eliminado",
         sets: [],
       });

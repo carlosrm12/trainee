@@ -90,9 +90,13 @@ export default function SessionDetailScreen() {
 
       {groups.map((g) => (
         <View key={g.routineExerciseId} className="mb-5">
-          <Text className="text-text-primary font-semibold mb-2">
-            {g.exerciseName}
-          </Text>
+          <Pressable
+            onPress={() => router.push(`/history/exercise/${g.exerciseId}`)}
+          >
+            <Text className="text-accent font-semibold mb-2">
+              {g.exerciseName} →
+            </Text>
+          </Pressable>
           {g.sets.map((s) => (
             <Text key={s.id} className="text-text-secondary">
               Set {s.setNumber}: {s.weightKg}kg × {s.reps} reps
