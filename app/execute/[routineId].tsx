@@ -100,7 +100,14 @@ export default function ExecuteRoutineScreen() {
 
   useEffect(() => {
     if (initialized) return;
-    if (execution.loading || !session || execution.steps.length === 0) return;
+    if (execution.loading || !session) return;
+
+    if (execution.steps.length === 0) {
+      // Rutina sin ejercicios todavía (recién creada) — no hay nada que
+      // reanudar, deja pasar a la pantalla de "sin ejercicios configurados".
+      setInitialized(true);
+      return;
+    }
 
     (async () => {
       const logs = await refreshSessionLogs();
@@ -307,9 +314,17 @@ export default function ExecuteRoutineScreen() {
   if (!step) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-lg text-center">
+        <Text className="text-text-primary text-lg text-center mb-6">
           Esta rutina no tiene ejercicios configurados.
         </Text>
+        <Pressable
+          onPress={() => router.replace(`/routines/${routineId}/edit`)}
+          className="rounded-pill bg-accent px-6 py-3"
+        >
+          <Text className="text-text-on-accent font-semibold">
+            Agregar ejercicios
+          </Text>
+        </Pressable>
       </View>
     );
   }
