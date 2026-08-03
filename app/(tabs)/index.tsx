@@ -51,9 +51,17 @@ export default function HomeScreen() {
         <Text className="text-text-primary text-2xl font-bold">
           Hola, Carlos
         </Text>
-        <Text className="text-accent" onPress={() => router.push("/history")}>
-          Historial →
-        </Text>
+        <View className="flex-row gap-4">
+          <Text
+            className="text-accent"
+            onPress={() => router.push("/routines")}
+          >
+            Rutinas
+          </Text>
+          <Text className="text-accent" onPress={() => router.push("/history")}>
+            Historial →
+          </Text>
+        </View>
       </View>
       <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
 
