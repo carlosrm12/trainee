@@ -101,3 +101,14 @@ export interface ExerciseRepository {
   update(id: string, changes: Partial<Omit<Exercise, "id">>): Promise<void>;
   delete(id: string): Promise<void>;
 }
+
+export type WeightUnit = "kg" | "lb";
+
+export interface UserSettings {
+  weightUnit: WeightUnit;
+}
+
+export interface SettingsRepository {
+  get(): Promise<UserSettings>;
+  update(changes: Partial<UserSettings>): Promise<void>;
+}
