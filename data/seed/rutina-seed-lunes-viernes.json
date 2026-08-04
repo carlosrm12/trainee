@@ -27,44 +27,44 @@
     {
       "id": "ex_press_frances",
       "name": "Press Francés (Barra)",
-      "muscleGroup": "arms",
+      "muscleGroup": "triceps",
       "weightInputMode": "total"
     },
     {
       "id": "ex_curl_barra_ez",
       "name": "Curl con Barra EZ",
-      "muscleGroup": "arms",
+      "muscleGroup": "biceps",
       "weightInputMode": "total"
     },
 
     {
       "id": "ex_sentadilla_barra",
       "name": "Sentadilla (Barra)",
-      "muscleGroup": "legs",
+      "muscleGroup": "quads",
       "weightInputMode": "per_side"
     },
     {
       "id": "ex_press_piernas",
       "name": "Press de Piernas",
-      "muscleGroup": "legs",
+      "muscleGroup": "quads",
       "weightInputMode": "total"
     },
     {
       "id": "ex_zancadas_bulgara",
       "name": "Zancadas o Sentadilla Búlgara",
-      "muscleGroup": "legs",
+      "muscleGroup": "quads",
       "weightInputMode": "total"
     },
     {
       "id": "ex_gemelos_sentado",
       "name": "Elevación de Gemelos Sentado",
-      "muscleGroup": "legs",
+      "muscleGroup": "calves",
       "weightInputMode": "total"
     },
     {
       "id": "ex_piernas_barra_abdomen",
       "name": "Levantamiento de Piernas en Barra",
-      "muscleGroup": "core",
+      "muscleGroup": "abs",
       "weightInputMode": "total"
     },
 
@@ -114,44 +114,44 @@
     {
       "id": "ex_triceps_polea",
       "name": "Tríceps con Polea",
-      "muscleGroup": "arms",
+      "muscleGroup": "triceps",
       "weightInputMode": "total"
     },
     {
       "id": "ex_curl_martillo",
       "name": "Curl Martillo (Mancuerna)",
-      "muscleGroup": "arms",
+      "muscleGroup": "biceps",
       "weightInputMode": "total"
     },
 
     {
       "id": "ex_peso_muerto_barra",
       "name": "Peso Muerto (Barra)",
-      "muscleGroup": "legs",
+      "muscleGroup": "hamstrings",
       "weightInputMode": "per_side"
     },
     {
       "id": "ex_peso_muerto_rumano",
       "name": "Peso Muerto Rumano",
-      "muscleGroup": "legs",
+      "muscleGroup": "hamstrings",
       "weightInputMode": "per_side"
     },
     {
       "id": "ex_curl_femoral",
       "name": "Curl Femoral (máquina)",
-      "muscleGroup": "legs",
+      "muscleGroup": "hamstrings",
       "weightInputMode": "total"
     },
     {
       "id": "ex_hip_thrust",
       "name": "Hip Thrust o Puente de Glúteo",
-      "muscleGroup": "legs",
+      "muscleGroup": "glutes",
       "weightInputMode": "total"
     },
     {
       "id": "ex_plancha",
       "name": "Flexiones en Plancha",
-      "muscleGroup": "core",
+      "muscleGroup": "abs",
       "weightInputMode": "total"
     }
   ],

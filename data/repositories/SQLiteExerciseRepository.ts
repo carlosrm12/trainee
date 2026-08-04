@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { randomUUID } from "expo-crypto";
 import type {
   Exercise,
   ExerciseRepository,
@@ -33,10 +34,26 @@ export class SQLiteExerciseRepository implements ExerciseRepository {
     };
   }
 
+  async create(exercise: Omit<Exercise, "id">): Promise<Exercise> {
+    const id = randomUUID();
+    await db.insert(exercises).values({
+      id,
+      name: exercise.name,
+      muscleGroup: exercise.muscleGroup,
+      isCustom: exercise.isCustom,
+      weightInputMode: exercise.weightInputMode,
+    });
+    return { id, ...exercise };
+  }
+
   async update(
     id: string,
     changes: Partial<Omit<Exercise, "id">>,
   ): Promise<void> {
     await db.update(exercises).set(changes).where(eq(exercises.id, id));
+  }
+
+  async delete(id: string): Promise<void> {
+    await db.delete(exercises).where(eq(exercises.id, id));
   }
 }

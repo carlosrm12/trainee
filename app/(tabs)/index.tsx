@@ -59,6 +59,12 @@ export default function HomeScreen() {
           >
             Rutinas
           </Text>
+          <Text
+            className="text-accent"
+            onPress={() => router.push("/exercises")}
+          >
+            Ejercicios
+          </Text>
           <Text className="text-accent" onPress={() => router.push("/history")}>
             Historial →
           </Text>
