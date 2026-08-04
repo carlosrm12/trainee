@@ -65,6 +65,12 @@ export interface RoutineRepository {
   create(routine: Omit<Routine, "id">): Promise<Routine>;
   update(id: string, changes: Partial<Omit<Routine, "id">>): Promise<void>;
   delete(id: string): Promise<void>;
+  addExercise(input: Omit<RoutineExercise, "id">): Promise<RoutineExercise>;
+  updateExercise(
+    id: string,
+    changes: Partial<Omit<RoutineExercise, "id" | "routineId">>,
+  ): Promise<void>;
+  removeExercise(id: string): Promise<void>;
 }
 
 export interface WorkoutSessionRepository {
