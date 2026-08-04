@@ -29,6 +29,13 @@
       "when": 1785785540766,
       "tag": "0003_little_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1785879675876,
+      "tag": "0004_nice_the_renegades",
+      "breakpoints": true
     }
   ]
 }

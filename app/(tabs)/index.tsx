@@ -52,7 +52,7 @@ export default function HomeScreen() {
         <Text className="text-text-primary text-2xl font-bold">
           Hola, Carlos
         </Text>
-        <View className="flex-row gap-4">
+        <View className="flex-row gap-3">
           <Text
             className="text-accent"
             onPress={() => router.push("/routines")}
@@ -66,7 +66,10 @@ export default function HomeScreen() {
             Ejercicios
           </Text>
           <Text className="text-accent" onPress={() => router.push("/history")}>
-            Historial →
+            Historial
+          </Text>
+          <Text className="text-accent" onPress={() => router.push("/profile")}>
+            Perfil
           </Text>
         </View>
       </View>

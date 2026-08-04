@@ -69,3 +69,9 @@ export const setLogs = sqliteTable("set_logs", {
     .notNull()
     .default(sql`(current_timestamp)`),
 });
+
+// Ajustes del usuario — una sola fila fija (id="default")
+export const userSettings = sqliteTable("user_settings", {
+  id: text("id").primaryKey(),
+  weightUnit: text("weight_unit").notNull().default("kg"), // "kg" | "lb"
+});
