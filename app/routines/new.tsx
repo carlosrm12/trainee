@@ -1,17 +1,8 @@
 import { useCreateRoutine } from "@/features/routines/useCreateRoutine";
+import { DAYS } from "@/shared/constants/days";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
-
-const DAYS = [
-  { label: "Lunes", value: 1 },
-  { label: "Martes", value: 2 },
-  { label: "Miércoles", value: 3 },
-  { label: "Jueves", value: 4 },
-  { label: "Viernes", value: 5 },
-  { label: "Sábado", value: 6 },
-  { label: "Domingo", value: 0 },
-];
 
 export default function NewRoutineScreen() {
   const router = useRouter();
