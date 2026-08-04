@@ -1,0 +1,226 @@
+import { useExerciseCatalog } from "@/features/exercises/useExerciseCatalog";
+import {
+  MUSCLE_GROUPS,
+  getMuscleGroupLabel,
+} from "@/shared/constants/muscleGroups";
+import { WEIGHT_INPUT_MODES } from "@/shared/constants/weightInputModes";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+
+export default function ExerciseCatalogScreen() {
+  const router = useRouter();
+  const {
+    loading,
+    exercises,
+    search,
+    setSearch,
+    muscleGroupFilter,
+    setMuscleGroupFilter,
+    updateExercise,
+    deleteExercise,
+    reload,
+  } = useExerciseCatalog();
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
+
+  function confirmDelete(id: string, name: string) {
+    Alert.alert("Borrar ejercicio", `¿Borrar "${name}" del catálogo?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Borrar",
+        style: "destructive",
+        onPress: () => deleteExercise(id),
+      },
+    ]);
+  }
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg-base">
+        <ActivityIndicator color="#F5C518" />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-bg-base px-4 pt-16">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-text-primary text-2xl font-bold">Ejercicios</Text>
+        <Pressable onPress={() => router.push("/exercises/new")}>
+          <Text className="text-accent font-semibold">+ Nuevo</Text>
+        </Pressable>
+      </View>
+
+      <TextInput
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Buscar ejercicio..."
+        placeholderTextColor="#9B9BA5"
+        className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-4"
+      />
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ height: 70, flexGrow: 0 }}
+        contentContainerStyle={{
+          height: 60,
+          alignItems: "center",
+          gap: 8,
+          paddingRight: 16,
+        }}
+      >
+        <Pressable
+          onPress={() => setMuscleGroupFilter("all")}
+          style={{
+            height: 36,
+            justifyContent: "center",
+            paddingHorizontal: 16,
+            borderRadius: 24,
+            borderWidth: 1,
+            backgroundColor:
+              muscleGroupFilter === "all" ? "#F5C518" : "#1A1A20",
+            borderColor: muscleGroupFilter === "all" ? "#F5C518" : "#2A2A32",
+          }}
+        >
+          <Text
+            className={
+              muscleGroupFilter === "all"
+                ? "text-text-on-accent font-semibold"
+                : "text-text-secondary"
+            }
+          >
+            Todos
+          </Text>
+        </Pressable>
+        {MUSCLE_GROUPS.map((g) => (
+          <Pressable
+            key={g.value}
+            onPress={() => setMuscleGroupFilter(g.value)}
+            style={{
+              height: 36,
+              justifyContent: "center",
+              paddingHorizontal: 16,
+              borderRadius: 24,
+              borderWidth: 1,
+              backgroundColor:
+                muscleGroupFilter === g.value ? "#F5C518" : "#1A1A20",
+              borderColor:
+                muscleGroupFilter === g.value ? "#F5C518" : "#2A2A32",
+            }}
+          >
+            <Text
+              className={
+                muscleGroupFilter === g.value
+                  ? "text-text-on-accent font-semibold"
+                  : "text-text-secondary"
+              }
+            >
+              {g.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {exercises.length === 0 && (
+          <Text className="text-text-secondary">
+            No hay ejercicios con ese filtro.
+          </Text>
+        )}
+
+        {exercises.map((ex) => (
+          <View
+            key={ex.id}
+            className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="text-text-primary font-semibold flex-1">
+                {ex.name}
+              </Text>
+              {ex.isCustom && (
+                <Text className="text-text-secondary text-xs">custom</Text>
+              )}
+            </View>
+            <Text className="text-text-secondary text-sm mt-1">
+              {getMuscleGroupLabel(ex.muscleGroup)} ·{" "}
+              {ex.weightInputMode === "per_side"
+                ? "peso por lado"
+                : "peso total"}
+            </Text>
+
+            <View className="flex-row gap-3 mt-3">
+              <Pressable
+                onPress={() => setEditingId(editingId === ex.id ? null : ex.id)}
+                className="rounded-pill bg-bg-surface-alt border border-border-subtle px-4 py-2"
+              >
+                <Text className="text-text-primary font-semibold">
+                  {editingId === ex.id ? "Cerrar" : "Editar"}
+                </Text>
+              </Pressable>
+              {ex.isCustom && (
+                <Pressable
+                  onPress={() => confirmDelete(ex.id, ex.name)}
+                  className="rounded-pill bg-bg-surface-alt border border-danger px-4 py-2"
+                >
+                  <Text className="text-danger font-semibold">Borrar</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {editingId === ex.id && (
+              <View className="mt-4 pt-4 border-t border-border-subtle">
+                <Text className="text-text-secondary text-sm mb-2">
+                  Modo de peso
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {WEIGHT_INPUT_MODES.map((m) => (
+                    <Pressable
+                      key={m.value}
+                      onPress={() =>
+                        updateExercise(ex.id, { weightInputMode: m.value })
+                      }
+                      className={`rounded-pill px-4 py-2 border ${
+                        ex.weightInputMode === m.value
+                          ? "bg-accent border-accent"
+                          : "bg-bg-surface border-border-subtle"
+                      }`}
+                    >
+                      <Text
+                        className={
+                          ex.weightInputMode === m.value
+                            ? "text-text-on-accent font-semibold"
+                            : "text-text-secondary"
+                        }
+                      >
+                        {m.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}

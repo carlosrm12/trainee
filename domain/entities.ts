@@ -4,10 +4,17 @@
 export type MuscleGroup =
   | "chest"
   | "back"
-  | "legs"
   | "shoulders"
-  | "arms"
-  | "core";
+  | "biceps"
+  | "triceps"
+  | "forearms"
+  | "quads"
+  | "hamstrings"
+  | "glutes"
+  | "calves"
+  | "abs"
+  | "traps"
+  | "cardio";
 
 export type WeightInputMode = "total" | "per_side";
 
@@ -90,5 +97,7 @@ export interface WorkoutSessionRepository {
 export interface ExerciseRepository {
   getAll(): Promise<Exercise[]>;
   getById(id: string): Promise<Exercise | null>;
+  create(exercise: Omit<Exercise, "id">): Promise<Exercise>;
   update(id: string, changes: Partial<Omit<Exercise, "id">>): Promise<void>;
+  delete(id: string): Promise<void>;
 }

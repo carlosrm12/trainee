@@ -30,6 +30,7 @@ export default function EditRoutineScreen() {
   } = useRoutineEditor(routineId);
 
   const [showPicker, setShowPicker] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingInfo, setEditingInfo] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -86,21 +87,35 @@ export default function EditRoutineScreen() {
           <View style={{ width: 24 }} />
         </View>
         <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-          {catalog.map((ex) => (
-            <Pressable
-              key={ex.id}
-              onPress={async () => {
-                await addExercise(ex.id);
-                setShowPicker(false);
-              }}
-              className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
-            >
-              <Text className="text-text-primary font-semibold">{ex.name}</Text>
-              <Text className="text-text-secondary text-sm mt-1">
-                {ex.muscleGroup}
-              </Text>
-            </Pressable>
-          ))}
+          <TextInput
+            value={pickerSearch}
+            onChangeText={setPickerSearch}
+            placeholder="Buscar ejercicio..."
+            placeholderTextColor="#9B9BA5"
+            className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-4"
+          />
+          {catalog
+            .filter((ex) =>
+              ex.name.toLowerCase().includes(pickerSearch.toLowerCase()),
+            )
+            .map((ex) => (
+              <Pressable
+                key={ex.id}
+                onPress={async () => {
+                  await addExercise(ex.id);
+                  setShowPicker(false);
+                  setPickerSearch("");
+                }}
+                className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
+              >
+                <Text className="text-text-primary font-semibold">
+                  {ex.name}
+                </Text>
+                <Text className="text-text-secondary text-sm mt-1">
+                  {ex.muscleGroup}
+                </Text>
+              </Pressable>
+            ))}
         </ScrollView>
       </View>
     );
