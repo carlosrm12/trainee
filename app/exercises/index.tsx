@@ -77,53 +77,70 @@ export default function ExerciseCatalogScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="mb-4"
-        style={{ flexGrow: 0 }}
+        style={{ height: 70, flexGrow: 0 }}
+        contentContainerStyle={{
+          height: 60,
+          alignItems: "center",
+          gap: 8,
+          paddingRight: 16,
+        }}
       >
-        <View className="flex-row gap-2">
-          <Pressable
-            onPress={() => setMuscleGroupFilter("all")}
-            className={`rounded-pill px-4 py-2 border ${
+        <Pressable
+          onPress={() => setMuscleGroupFilter("all")}
+          style={{
+            height: 36,
+            justifyContent: "center",
+            paddingHorizontal: 16,
+            borderRadius: 24,
+            borderWidth: 1,
+            backgroundColor:
+              muscleGroupFilter === "all" ? "#F5C518" : "#1A1A20",
+            borderColor: muscleGroupFilter === "all" ? "#F5C518" : "#2A2A32",
+          }}
+        >
+          <Text
+            className={
               muscleGroupFilter === "all"
-                ? "bg-accent border-accent"
-                : "bg-bg-surface border-border-subtle"
-            }`}
+                ? "text-text-on-accent font-semibold"
+                : "text-text-secondary"
+            }
+          >
+            Todos
+          </Text>
+        </Pressable>
+        {MUSCLE_GROUPS.map((g) => (
+          <Pressable
+            key={g.value}
+            onPress={() => setMuscleGroupFilter(g.value)}
+            style={{
+              height: 36,
+              justifyContent: "center",
+              paddingHorizontal: 16,
+              borderRadius: 24,
+              borderWidth: 1,
+              backgroundColor:
+                muscleGroupFilter === g.value ? "#F5C518" : "#1A1A20",
+              borderColor:
+                muscleGroupFilter === g.value ? "#F5C518" : "#2A2A32",
+            }}
           >
             <Text
               className={
-                muscleGroupFilter === "all"
+                muscleGroupFilter === g.value
                   ? "text-text-on-accent font-semibold"
                   : "text-text-secondary"
               }
             >
-              Todos
+              {g.label}
             </Text>
           </Pressable>
-          {MUSCLE_GROUPS.map((g) => (
-            <Pressable
-              key={g.value}
-              onPress={() => setMuscleGroupFilter(g.value)}
-              className={`rounded-pill px-4 py-2 border ${
-                muscleGroupFilter === g.value
-                  ? "bg-accent border-accent"
-                  : "bg-bg-surface border-border-subtle"
-              }`}
-            >
-              <Text
-                className={
-                  muscleGroupFilter === g.value
-                    ? "text-text-on-accent font-semibold"
-                    : "text-text-secondary"
-                }
-              >
-                {g.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        ))}
       </ScrollView>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {exercises.length === 0 && (
           <Text className="text-text-secondary">
             No hay ejercicios con ese filtro.
