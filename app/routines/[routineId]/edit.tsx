@@ -1,12 +1,15 @@
 import { useRoutineEditor } from "@/features/routines/useRoutineEditor";
 import { SetStepper } from "@/shared/components/SetStepper";
+import { DAYS } from "@/shared/constants/days";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -22,10 +25,45 @@ export default function EditRoutineScreen() {
     updateExercise,
     removeExercise,
     moveExercise,
+    updateRoutineInfo,
+    deleteRoutine,
   } = useRoutineEditor(routineId);
 
   const [showPicker, setShowPicker] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [dayDraft, setDayDraft] = useState<number | null>(null);
+
+  function openInfoEditor() {
+    setNameDraft(routine?.name ?? "");
+    setDayDraft(routine?.dayOfWeek ?? null);
+    setEditingInfo(true);
+  }
+
+  async function saveInfo() {
+    if (!nameDraft.trim()) return;
+    await updateRoutineInfo({ name: nameDraft.trim(), dayOfWeek: dayDraft });
+    setEditingInfo(false);
+  }
+
+  function confirmDeleteRoutine() {
+    Alert.alert(
+      "Borrar rutina",
+      `Esto elimina "${routine?.name}" y todos sus ejercicios configurados. Tu historial de entrenamientos pasados NO se borra. ¿Continuar?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Borrar",
+          style: "destructive",
+          onPress: async () => {
+            await deleteRoutine();
+            router.replace("/routines");
+          },
+        },
+      ],
+    );
+  }
 
   if (loading) {
     return (
@@ -77,11 +115,80 @@ export default function EditRoutineScreen() {
         <Pressable onPress={() => router.back()}>
           <Text className="text-text-secondary text-2xl">‹</Text>
         </Pressable>
-        <Text className="text-text-primary font-semibold">
-          {routine?.name ?? "Rutina"}
-        </Text>
         <View style={{ width: 24 }} />
       </View>
+
+      {editingInfo ? (
+        <View className="mb-8">
+          <Text className="text-text-secondary mb-2">Nombre</Text>
+          <TextInput
+            value={nameDraft}
+            onChangeText={setNameDraft}
+            placeholderTextColor="#9B9BA5"
+            className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-4"
+          />
+          <Text className="text-text-secondary mb-2">Día de la semana</Text>
+          <View className="flex-row flex-wrap gap-2 mb-4">
+            {DAYS.map((d) => (
+              <Pressable
+                key={d.value}
+                onPress={() =>
+                  setDayDraft(dayDraft === d.value ? null : d.value)
+                }
+                className={`rounded-pill px-4 py-2 border ${
+                  dayDraft === d.value
+                    ? "bg-accent border-accent"
+                    : "bg-bg-surface border-border-subtle"
+                }`}
+              >
+                <Text
+                  className={
+                    dayDraft === d.value
+                      ? "text-text-on-accent font-semibold"
+                      : "text-text-secondary"
+                  }
+                >
+                  {d.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={saveInfo}
+              disabled={!nameDraft.trim()}
+              className={`rounded-pill px-5 py-3 ${nameDraft.trim() ? "bg-accent" : "bg-bg-surface-alt"}`}
+            >
+              <Text
+                className={
+                  nameDraft.trim()
+                    ? "text-text-on-accent font-semibold"
+                    : "text-text-secondary"
+                }
+              >
+                Guardar
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setEditingInfo(false)}
+              className="rounded-pill bg-bg-surface border border-border-subtle px-5 py-3"
+            >
+              <Text className="text-text-secondary font-semibold">
+                Cancelar
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <View className="flex-row items-center justify-between mb-8">
+          <Text className="text-text-primary text-2xl font-bold flex-1">
+            {routine?.name ?? "Rutina"}
+          </Text>
+          <Pressable onPress={openInfoEditor}>
+            <Text className="text-accent font-semibold">Editar</Text>
+          </Pressable>
+        </View>
+      )}
 
       {items.length === 0 && (
         <Text className="text-text-secondary mb-6">
@@ -198,6 +305,10 @@ export default function EditRoutineScreen() {
         <Text className="text-text-on-accent font-semibold">
           + Agregar ejercicio
         </Text>
+      </Pressable>
+
+      <Pressable onPress={confirmDeleteRoutine} className="items-center mt-10">
+        <Text className="text-danger font-semibold">Borrar rutina</Text>
       </Pressable>
     </ScrollView>
   );

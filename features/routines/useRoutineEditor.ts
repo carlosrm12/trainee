@@ -82,6 +82,15 @@ export function useRoutineEditor(routineId: string) {
     await load();
   }
 
+  async function updateRoutineInfo(changes: Partial<Omit<Routine, "id">>) {
+    await routineRepo.update(routineId, changes);
+    await load();
+  }
+
+  async function deleteRoutine() {
+    await routineRepo.delete(routineId);
+  }
+
   return {
     loading,
     routine,
@@ -91,6 +100,8 @@ export function useRoutineEditor(routineId: string) {
     updateExercise,
     removeExercise,
     moveExercise,
+    updateRoutineInfo,
+    deleteRoutine,
     reload: load,
   };
 }

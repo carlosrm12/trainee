@@ -1,18 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { SQLiteRoutineRepository } from "../../data/repositories/SQLiteRoutineRepository";
 import type { Routine } from "../../domain/entities";
+import { getDayLabel, sortableDay } from "../../shared/constants/days";
 
 const repo = new SQLiteRoutineRepository();
-
-const DAY_NAMES = [
-  "Domingo",
-  "Lunes",
-  "Martes",
-  "Miércoles",
-  "Jueves",
-  "Viernes",
-  "Sábado",
-];
 
 export type RoutineWithMeta = Routine & {
   exerciseCount: number;
@@ -33,13 +24,14 @@ export function useRoutines() {
         return {
           ...r,
           exerciseCount: exercises.length,
-          dayLabel:
-            r.dayOfWeek !== null ? DAY_NAMES[r.dayOfWeek] : "Sin día asignado",
+          dayLabel: getDayLabel(r.dayOfWeek),
         };
       }),
     );
 
-    withMeta.sort((a, b) => (a.dayOfWeek ?? 99) - (b.dayOfWeek ?? 99));
+    withMeta.sort(
+      (a, b) => sortableDay(a.dayOfWeek) - sortableDay(b.dayOfWeek),
+    );
     setRoutines(withMeta);
     setLoading(false);
   }, []);

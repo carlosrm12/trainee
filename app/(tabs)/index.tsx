@@ -14,13 +14,14 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { routines, loading } = useRoutines();
+  const { routines, loading, reload } = useRoutines();
   const { activeSession, discard, recheck } = useActiveSession();
 
   useFocusEffect(
     useCallback(() => {
       recheck();
-    }, [recheck]),
+      reload();
+    }, [recheck, reload]),
   );
 
   function handleStartRoutine(routineId: string) {
