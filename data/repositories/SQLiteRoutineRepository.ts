@@ -62,4 +62,35 @@ export class SQLiteRoutineRepository implements RoutineRepository {
     await db.delete(routineExercises).where(eq(routineExercises.routineId, id));
     await db.delete(routines).where(eq(routines.id, id));
   }
+
+  async addExercise(
+    input: Omit<RoutineExercise, "id">,
+  ): Promise<RoutineExercise> {
+    const id = randomUUID();
+    await db.insert(routineExercises).values({
+      id,
+      routineId: input.routineId,
+      exerciseId: input.exerciseId,
+      order: input.order,
+      restSeconds: input.restSeconds,
+      targetSets: input.targetSets,
+      repMin: input.repMin,
+      repMax: input.repMax,
+    });
+    return { id, ...input };
+  }
+
+  async updateExercise(
+    id: string,
+    changes: Partial<Omit<RoutineExercise, "id" | "routineId">>,
+  ): Promise<void> {
+    await db
+      .update(routineExercises)
+      .set(changes)
+      .where(eq(routineExercises.id, id));
+  }
+
+  async removeExercise(id: string): Promise<void> {
+    await db.delete(routineExercises).where(eq(routineExercises.id, id));
+  }
 }
