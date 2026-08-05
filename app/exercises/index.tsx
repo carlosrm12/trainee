@@ -4,6 +4,7 @@ import {
   getMuscleGroupLabel,
 } from "@/shared/constants/muscleGroups";
 import { WEIGHT_INPUT_MODES } from "@/shared/constants/weightInputModes";
+import { WEIGHT_UNITS } from "@/shared/constants/weightUnits";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -77,7 +78,7 @@ export default function ExerciseCatalogScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ height: 70, flexGrow: 0 }}
+        style={{ height: 60, flexGrow: 0 }}
         contentContainerStyle={{
           height: 60,
           alignItems: "center",
@@ -164,7 +165,8 @@ export default function ExerciseCatalogScreen() {
               {getMuscleGroupLabel(ex.muscleGroup)} ·{" "}
               {ex.weightInputMode === "per_side"
                 ? "peso por lado"
-                : "peso total"}
+                : "peso total"}{" "}
+              · {ex.inputUnit}
             </Text>
 
             <View className="flex-row gap-3 mt-3">
@@ -198,11 +200,20 @@ export default function ExerciseCatalogScreen() {
                       onPress={() =>
                         updateExercise(ex.id, { weightInputMode: m.value })
                       }
-                      className={`rounded-pill px-4 py-2 border ${
-                        ex.weightInputMode === m.value
-                          ? "bg-accent border-accent"
-                          : "bg-bg-surface border-border-subtle"
-                      }`}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 24,
+                        borderWidth: 1,
+                        backgroundColor:
+                          ex.weightInputMode === m.value
+                            ? "#F5C518"
+                            : "#1A1A20",
+                        borderColor:
+                          ex.weightInputMode === m.value
+                            ? "#F5C518"
+                            : "#2A2A32",
+                      }}
                     >
                       <Text
                         className={
@@ -212,6 +223,39 @@ export default function ExerciseCatalogScreen() {
                         }
                       >
                         {m.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Text className="text-text-secondary text-sm mb-2 mt-4">
+                  Unidad
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {WEIGHT_UNITS.map((u) => (
+                    <Pressable
+                      key={u.value}
+                      onPress={() =>
+                        updateExercise(ex.id, { inputUnit: u.value })
+                      }
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 24,
+                        borderWidth: 1,
+                        backgroundColor:
+                          ex.inputUnit === u.value ? "#F5C518" : "#1A1A20",
+                        borderColor:
+                          ex.inputUnit === u.value ? "#F5C518" : "#2A2A32",
+                      }}
+                    >
+                      <Text
+                        className={
+                          ex.inputUnit === u.value
+                            ? "text-text-on-accent font-semibold"
+                            : "text-text-secondary"
+                        }
+                      >
+                        {u.label}
                       </Text>
                     </Pressable>
                   ))}

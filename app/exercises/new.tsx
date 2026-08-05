@@ -1,7 +1,12 @@
-import type { MuscleGroup, WeightInputMode } from "@/domain/entities";
+import type {
+  MuscleGroup,
+  WeightInputMode,
+  WeightUnit,
+} from "@/domain/entities";
 import { useExerciseCatalog } from "@/features/exercises/useExerciseCatalog";
 import { MUSCLE_GROUPS } from "@/shared/constants/muscleGroups";
 import { WEIGHT_INPUT_MODES } from "@/shared/constants/weightInputModes";
+import { WEIGHT_UNITS } from "@/shared/constants/weightUnits";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -14,6 +19,7 @@ export default function NewExerciseScreen() {
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>("chest");
   const [weightInputMode, setWeightInputMode] =
     useState<WeightInputMode>("total");
+  const [inputUnit, setInputUnit] = useState<WeightUnit>("kg");
   const [saving, setSaving] = useState(false);
 
   async function handleCreate() {
@@ -24,6 +30,7 @@ export default function NewExerciseScreen() {
       muscleGroup,
       isCustom: true,
       weightInputMode,
+      inputUnit,
     });
     setSaving(false);
     router.back();
@@ -96,6 +103,36 @@ export default function NewExerciseScreen() {
               }
             >
               {m.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text className="text-text-secondary mb-2">
+        Unidad en la que ingresas el peso
+      </Text>
+      <View className="flex-row flex-wrap gap-2 mb-8">
+        {WEIGHT_UNITS.map((u) => (
+          <Pressable
+            key={u.value}
+            onPress={() => setInputUnit(u.value)}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 10,
+              borderRadius: 24,
+              borderWidth: 1,
+              backgroundColor: inputUnit === u.value ? "#F5C518" : "#1A1A20",
+              borderColor: inputUnit === u.value ? "#F5C518" : "#2A2A32",
+            }}
+          >
+            <Text
+              className={
+                inputUnit === u.value
+                  ? "text-text-on-accent font-semibold"
+                  : "text-text-secondary"
+              }
+            >
+              {u.label}
             </Text>
           </Pressable>
         ))}

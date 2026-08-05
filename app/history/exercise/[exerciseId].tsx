@@ -1,5 +1,7 @@
 import { useExerciseProgress } from "@/features/history/useExerciseProgress";
+import { useSettings } from "@/features/profile/useSettings";
 import { formatSessionDate } from "@/shared/utils/formatDate";
+import { formatWeight } from "@/shared/utils/weightUnit";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -14,6 +16,7 @@ export default function ExerciseProgressScreen() {
   const router = useRouter();
   const { loading, exerciseName, sessionGroups } =
     useExerciseProgress(exerciseId);
+  const { weightUnit } = useSettings();
 
   if (loading) {
     return (
@@ -57,12 +60,13 @@ export default function ExerciseProgressScreen() {
               {formatSessionDate(g.dateIso)}
             </Text>
             <Text className="text-accent font-semibold">
-              {g.maxWeightKg}kg máx
+              {formatWeight(g.maxWeightKg, weightUnit)} máx
             </Text>
           </View>
           {g.sets.map((s) => (
             <Text key={s.id} className="text-text-secondary">
-              Set {s.setNumber}: {s.weightKg}kg × {s.reps} reps
+              Set {s.setNumber}: {formatWeight(s.weightKg, weightUnit)} ×{" "}
+              {s.reps} reps
             </Text>
           ))}
         </View>

@@ -7,10 +7,15 @@ import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
 import {
-  DEFAULT_BAR_WEIGHT_KG,
   perSideToTotal,
   totalToPerSide,
 } from "@/shared/utils/weightConversion";
+import {
+  getDefaultBarWeight,
+  getWeightStep,
+  kgToLb,
+  lbToKg,
+} from "@/shared/utils/weightUnit";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -22,7 +27,6 @@ import {
   View,
 } from "react-native";
 
-// Helper: sets "de trabajo" (excluye calentamiento) para un ejercicio dado.
 function workingSetsFor(logs: SetLog[], routineExerciseId: string) {
   return logs.filter(
     (l) => l.routineExerciseId === routineExerciseId && !l.isWarmup,
@@ -33,6 +37,16 @@ function warmupSetsFor(logs: SetLog[], routineExerciseId: string) {
   return logs
     .filter((l) => l.routineExerciseId === routineExerciseId && l.isWarmup)
     .sort((a, b) => a.setNumber - b.setNumber);
+}
+
+// Convierte un kg guardado a la unidad de entrada del ejercicio, para mostrarlo.
+function kgToDisplayUnit(kg: number, step: ExecutionStep): number {
+  return step.exercise.inputUnit === "lb" ? kgToLb(kg) : kg;
+}
+
+// Convierte lo que el usuario tecleó (en la unidad del ejercicio) de vuelta a kg para guardar.
+function displayUnitToKg(value: number, step: ExecutionStep): number {
+  return step.exercise.inputUnit === "lb" ? lbToKg(value) : value;
 }
 
 export default function ExecuteRoutineScreen() {
@@ -59,8 +73,6 @@ export default function ExecuteRoutineScreen() {
     return logs;
   }
 
-  // Carga (o crea por defecto) los valores de peso/reps para un set de TRABAJO
-  // puntual de un ejercicio dado. Los calentamientos nunca pasan por acá.
   async function loadSetValues(
     step: ExecutionStep,
     setNumber: number,
@@ -77,12 +89,18 @@ export default function ExecuteRoutineScreen() {
     }
     setReps(step.repMin);
     const lastWeight = await getLastWeight(step.exercise.id);
-    setWeightKg(
-      lastWeight ??
-        (step.exercise.weightInputMode === "per_side"
-          ? DEFAULT_BAR_WEIGHT_KG
-          : 0),
-    );
+    if (lastWeight !== null) {
+      setWeightKg(lastWeight);
+      return;
+    }
+    // Sin historial: si es "por lado", arranca en la barra sola (en la unidad
+    // del ejercicio, convertida a kg para guardar); si es "total", en 0.
+    if (step.exercise.weightInputMode === "per_side") {
+      const barInUnit = getDefaultBarWeight(step.exercise.inputUnit);
+      setWeightKg(displayUnitToKg(barInUnit, step));
+    } else {
+      setWeightKg(0);
+    }
   }
 
   function jumpToExercise(index: number, logs: SetLog[]) {
@@ -103,8 +121,6 @@ export default function ExecuteRoutineScreen() {
     if (execution.loading || !session) return;
 
     if (execution.steps.length === 0) {
-      // Rutina sin ejercicios todavía (recién creada) — no hay nada que
-      // reanudar, deja pasar a la pantalla de "sin ejercicios configurados".
       setInitialized(true);
       return;
     }
@@ -120,9 +136,6 @@ export default function ExecuteRoutineScreen() {
         await completeSession(null);
         setRoutineFinished(true);
       } else {
-        // Prioriza retomar exactamente donde estabas parado. Solo cae a
-        // "primer ejercicio incompleto" si nunca se guardó posición, o si
-        // ese ejercicio en particular ya quedó completo (por edición manual).
         const lastIndex = session.lastRoutineExerciseId
           ? execution.steps.findIndex(
               (s) => s.id === session.lastRoutineExerciseId,
@@ -340,6 +353,20 @@ export default function ExecuteRoutineScreen() {
     };
   });
 
+  const unit = step.exercise.inputUnit;
+  const barWeightInUnit = getDefaultBarWeight(unit);
+  const weightStep = getWeightStep(unit, step.exercise.weightInputMode);
+  const totalInUnit = kgToDisplayUnit(weightKg, step);
+  const perSideInUnit = totalToPerSide(totalInUnit, barWeightInUnit);
+
+  function handleWeightChange(newValueInUnit: number) {
+    const newTotalInUnit =
+      step!.exercise.weightInputMode === "per_side"
+        ? perSideToTotal(newValueInUnit, barWeightInUnit)
+        : newValueInUnit;
+    setWeightKg(displayUnitToKg(newTotalInUnit, step!));
+  }
+
   return (
     <View className="flex-1 bg-bg-base px-6 pt-16">
       <View className="flex-row items-center justify-between mb-8">
@@ -366,7 +393,9 @@ export default function ExecuteRoutineScreen() {
           <Text className="text-text-secondary text-xs">Calentamiento</Text>
           <Text className="text-text-secondary text-sm mt-1">
             {warmupsForCurrentStep
-              .map((w) => `${w.weightKg}kg×${w.reps}`)
+              .map(
+                (w) => `${kgToDisplayUnit(w.weightKg, step)}${unit}×${w.reps}`,
+              )
               .join("  ·  ")}
           </Text>
         </View>
@@ -374,7 +403,8 @@ export default function ExecuteRoutineScreen() {
 
       <Pressable onPress={handleAddWarmup} className="mt-3">
         <Text className="text-text-secondary text-sm underline">
-          + Agregar calentamiento ({weightKg}kg × {reps})
+          + Agregar calentamiento ({totalInUnit}
+          {unit} × {reps})
         </Text>
       </Pressable>
 
@@ -387,19 +417,19 @@ export default function ExecuteRoutineScreen() {
         {step.exercise.weightInputMode === "per_side" ? (
           <SetStepper
             label="Peso por lado"
-            value={totalToPerSide(weightKg)}
-            unit="kg"
-            step={2.5}
-            helperText={`Total: ${weightKg}kg`}
-            onChange={(perSide) => setWeightKg(perSideToTotal(perSide))}
+            value={perSideInUnit}
+            unit={unit}
+            step={weightStep}
+            helperText={`Total: ${totalInUnit}${unit}`}
+            onChange={handleWeightChange}
           />
         ) : (
           <SetStepper
             label="Peso"
-            value={weightKg}
-            unit="kg"
-            step={2.5}
-            onChange={setWeightKg}
+            value={totalInUnit}
+            unit={unit}
+            step={weightStep}
+            onChange={handleWeightChange}
           />
         )}
         <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />

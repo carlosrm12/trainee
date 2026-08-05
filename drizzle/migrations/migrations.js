@@ -6,6 +6,7 @@ import m0001 from './0001_mushy_puck.sql';
 import m0002 from './0002_magenta_yellowjacket.sql';
 import m0003 from './0003_little_cyclops.sql';
 import m0004 from './0004_nice_the_renegades.sql';
+import m0005 from './0005_faithful_proteus.sql';
 
   export default {
     journal,
@@ -14,7 +15,8 @@ import m0004 from './0004_nice_the_renegades.sql';
 m0001,
 m0002,
 m0003,
-m0004
+m0004,
+m0005
     }
   }
   

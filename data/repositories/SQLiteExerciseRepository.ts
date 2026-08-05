@@ -5,33 +5,32 @@ import type {
   ExerciseRepository,
   MuscleGroup,
   WeightInputMode,
+  WeightUnit,
 } from "../../domain/entities";
 import { exercises } from "../../drizzle/schema";
 import { db } from "../db/client";
 
+function mapRow(r: typeof exercises.$inferSelect): Exercise {
+  return {
+    id: r.id,
+    name: r.name,
+    muscleGroup: r.muscleGroup as MuscleGroup,
+    isCustom: r.isCustom,
+    weightInputMode: r.weightInputMode as WeightInputMode,
+    inputUnit: r.inputUnit as WeightUnit,
+  };
+}
+
 export class SQLiteExerciseRepository implements ExerciseRepository {
   async getAll(): Promise<Exercise[]> {
     const rows = await db.select().from(exercises);
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      muscleGroup: r.muscleGroup as MuscleGroup,
-      isCustom: r.isCustom,
-      weightInputMode: r.weightInputMode as WeightInputMode,
-    }));
+    return rows.map(mapRow);
   }
 
   async getById(id: string): Promise<Exercise | null> {
     const rows = await db.select().from(exercises).where(eq(exercises.id, id));
     const r = rows[0];
-    if (!r) return null;
-    return {
-      id: r.id,
-      name: r.name,
-      muscleGroup: r.muscleGroup as MuscleGroup,
-      isCustom: r.isCustom,
-      weightInputMode: r.weightInputMode as WeightInputMode,
-    };
+    return r ? mapRow(r) : null;
   }
 
   async create(exercise: Omit<Exercise, "id">): Promise<Exercise> {
@@ -42,6 +41,7 @@ export class SQLiteExerciseRepository implements ExerciseRepository {
       muscleGroup: exercise.muscleGroup,
       isCustom: exercise.isCustom,
       weightInputMode: exercise.weightInputMode,
+      inputUnit: exercise.inputUnit,
     });
     return { id, ...exercise };
   }

@@ -4,158 +4,178 @@
       "id": "ex_press_banca_barra",
       "name": "Press de Banca (Barra)",
       "muscleGroup": "chest",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_remo_pendlay",
       "name": "Remo Pendlay (Barra)",
       "muscleGroup": "back",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_press_hombros_barra",
       "name": "Press de Hombros (Barra)",
       "muscleGroup": "shoulders",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_jalon_pecho_cable",
       "name": "Jalón al Pecho (Cable)",
       "muscleGroup": "back",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_press_frances",
       "name": "Press Francés (Barra)",
       "muscleGroup": "triceps",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_curl_barra_ez",
       "name": "Curl con Barra EZ",
       "muscleGroup": "biceps",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
-
     {
       "id": "ex_sentadilla_barra",
       "name": "Sentadilla (Barra)",
       "muscleGroup": "quads",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_press_piernas",
       "name": "Press de Piernas",
       "muscleGroup": "quads",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_zancadas_bulgara",
       "name": "Zancadas o Sentadilla Búlgara",
       "muscleGroup": "quads",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_gemelos_sentado",
       "name": "Elevación de Gemelos Sentado",
       "muscleGroup": "calves",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_piernas_barra_abdomen",
       "name": "Levantamiento de Piernas en Barra",
       "muscleGroup": "abs",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
-
     {
       "id": "ex_jalon_agarre_cerrado",
       "name": "Jalón al Pecho - Agarre Cerrado (Cable)",
       "muscleGroup": "back",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_press_banca_inclinado_mancuerna",
       "name": "Press de Banca Inclinado (Mancuerna)",
       "muscleGroup": "chest",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_remo_inclinado_apoyo",
       "name": "Remo Inclinado con Apoyo de Pecho (Mancuerna)",
       "muscleGroup": "back",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_mariposa_pec_deck",
       "name": "Mariposa (Pec Deck)",
       "muscleGroup": "chest",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_elevacion_lateral_mancuerna",
       "name": "Elevación Laterales (Mancuerna)",
       "muscleGroup": "shoulders",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_tiron_a_la_cara",
       "name": "Tirón a la Cara",
       "muscleGroup": "shoulders",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
-
     {
       "id": "ex_press_hombros_mancuerna",
       "name": "Press de Hombros (Mancuerna)",
       "muscleGroup": "shoulders",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_triceps_polea",
       "name": "Tríceps con Polea",
       "muscleGroup": "triceps",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_curl_martillo",
       "name": "Curl Martillo (Mancuerna)",
       "muscleGroup": "biceps",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
-
     {
       "id": "ex_peso_muerto_barra",
       "name": "Peso Muerto (Barra)",
       "muscleGroup": "hamstrings",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_peso_muerto_rumano",
       "name": "Peso Muerto Rumano",
       "muscleGroup": "hamstrings",
-      "weightInputMode": "per_side"
+      "weightInputMode": "per_side",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_curl_femoral",
       "name": "Curl Femoral (máquina)",
       "muscleGroup": "hamstrings",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_hip_thrust",
       "name": "Hip Thrust o Puente de Glúteo",
       "muscleGroup": "glutes",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     },
     {
       "id": "ex_plancha",
       "name": "Flexiones en Plancha",
       "muscleGroup": "abs",
-      "weightInputMode": "total"
+      "weightInputMode": "total",
+      "inputUnit": "kg"
     }
   ],
-
   "routines": [
     {
       "id": "rt_lunes_superior_a",

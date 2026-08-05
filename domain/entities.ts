@@ -24,6 +24,7 @@ export interface Exercise {
   muscleGroup: MuscleGroup;
   isCustom: boolean;
   weightInputMode: WeightInputMode;
+  inputUnit: WeightUnit;
 }
 
 export interface Routine {
