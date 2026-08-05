@@ -8,6 +8,7 @@ export const exercises = sqliteTable("exercises", {
   muscleGroup: text("muscle_group").notNull(), // "chest" | "back" | "legs" | "shoulders" | "arms" | "core"
   isCustom: integer("is_custom", { mode: "boolean" }).notNull().default(false),
   weightInputMode: text("weight_input_mode").notNull().default("total"), // "total" | "per_side"
+  inputUnit: text("input_unit").notNull().default("kg"), // "kg" | "lb"
 });
 
 // Rutinas (una por día de la semana, ej. "Lunes - Superior A")

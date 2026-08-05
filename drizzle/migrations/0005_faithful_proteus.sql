@@ -1,0 +1,1 @@
+ALTER TABLE `exercises` ADD `input_unit` text DEFAULT 'kg' NOT NULL;

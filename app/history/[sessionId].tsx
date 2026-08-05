@@ -1,5 +1,7 @@
 import { useSessionDetail } from "@/features/history/useSessionDetail";
+import { useSettings } from "@/features/profile/useSettings";
 import { formatSessionDate } from "@/shared/utils/formatDate";
+import { formatWeight } from "@/shared/utils/weightUnit";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -23,6 +25,7 @@ export default function SessionDetailScreen() {
     totalSets,
     deleteSession,
   } = useSessionDetail(sessionId);
+  const { weightUnit } = useSettings();
   const [deleting, setDeleting] = useState(false);
 
   function confirmDelete() {
@@ -83,7 +86,7 @@ export default function SessionDetailScreen() {
         <View>
           <Text className="text-text-secondary text-sm">Volumen total</Text>
           <Text className="text-text-primary text-xl font-bold">
-            {totalVolumeKg.toLocaleString()} kg
+            {formatWeight(totalVolumeKg, weightUnit)}
           </Text>
         </View>
       </View>
@@ -100,7 +103,7 @@ export default function SessionDetailScreen() {
           {g.sets.map((s) => (
             <Text key={s.id} className="text-text-secondary">
               {s.isWarmup ? "Calentamiento" : `Set ${s.setNumber}`}:{" "}
-              {s.weightKg}kg × {s.reps} reps
+              {formatWeight(s.weightKg, weightUnit)} × {s.reps} reps
             </Text>
           ))}
         </View>
