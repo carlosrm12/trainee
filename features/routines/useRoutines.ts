@@ -7,6 +7,7 @@ const repo = new SQLiteRoutineRepository();
 
 export type RoutineWithMeta = Routine & {
   exerciseCount: number;
+  totalSets: number;
   dayLabel: string;
 };
 
@@ -24,6 +25,7 @@ export function useRoutines() {
         return {
           ...r,
           exerciseCount: exercises.length,
+          totalSets: exercises.reduce((sum, e) => sum + e.targetSets, 0),
           dayLabel: getDayLabel(r.dayOfWeek),
         };
       }),

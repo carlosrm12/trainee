@@ -1,5 +1,6 @@
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useSettings } from "@/features/profile/useSettings";
+import { StatRow } from "@/shared/components/StatRow";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -52,19 +53,13 @@ export default function ProfileScreen() {
       <Text className="text-text-primary text-2xl font-bold mb-1">Carlos</Text>
       <Text className="text-text-secondary mb-8">Tu progreso</Text>
 
-      <View className="flex-row gap-10 mb-10">
-        <View>
-          <Text className="text-text-secondary text-sm">Racha</Text>
-          <Text className="text-text-primary text-3xl font-bold">
-            🔥 {streakDays}
-          </Text>
-        </View>
-        <View>
-          <Text className="text-text-secondary text-sm">Sesiones totales</Text>
-          <Text className="text-text-primary text-3xl font-bold">
-            {totalSessions}
-          </Text>
-        </View>
+      <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-10">
+        <StatRow
+          items={[
+            { icon: "🔥", value: String(streakDays), label: "racha (días)" },
+            { value: String(totalSessions), label: "sesiones totales" },
+          ]}
+        />
       </View>
 
       <Text className="text-text-primary font-semibold mb-3">Ajustes</Text>

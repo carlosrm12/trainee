@@ -2,7 +2,10 @@ import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useFeaturedRoutine } from "@/features/routines/useFeaturedRoutine";
 import { useRoutines } from "@/features/routines/useRoutines";
 import { useActiveSession } from "@/features/workout-session/useActiveSession";
+import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { RoutineCard } from "@/shared/components/RoutineCard";
+import { StatRow } from "@/shared/components/StatRow";
+import { StreakBadge } from "@/shared/components/StreakBadge";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
@@ -52,23 +55,7 @@ export default function HomeScreen() {
         <Text className="text-text-primary text-2xl font-bold">
           Hola, Carlos
         </Text>
-        {streakDays > 0 && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: "#F5C518",
-            }}
-          >
-            <Text style={{ color: "#F5C518", fontWeight: "600", fontSize: 13 }}>
-              🔥 {streakDays}
-            </Text>
-          </View>
-        )}
+        <StreakBadge days={streakDays} />
       </View>
       <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
 
@@ -108,11 +95,26 @@ export default function HomeScreen() {
           <Text className="text-text-secondary text-sm mb-2">
             Rutina destacada
           </Text>
-          <RoutineCard
-            name={featured.name}
-            meta={`${featured.dayLabel} · ${featured.exerciseCount} ejercicios`}
-            onPress={() => handleStartRoutine(featured.id)}
-          />
+          <View className="rounded-card border border-border-subtle bg-bg-surface p-4">
+            <Text className="text-text-primary text-base font-semibold">
+              {featured.name}
+            </Text>
+            <Text className="text-text-secondary text-sm mt-1 mb-3">
+              {featured.dayLabel}
+            </Text>
+            <StatRow
+              items={[
+                { value: String(featured.exerciseCount), label: "ejercicios" },
+                { value: String(featured.totalSets), label: "sets" },
+              ]}
+            />
+            <View className="mt-4">
+              <BrutalistButton
+                label="Empezar rutina"
+                onPress={() => handleStartRoutine(featured.id)}
+              />
+            </View>
+          </View>
         </View>
       )}
 
