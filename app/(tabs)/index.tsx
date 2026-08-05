@@ -1,27 +1,25 @@
+import { useProfileStats } from "@/features/profile/useProfileStats";
+import { useFeaturedRoutine } from "@/features/routines/useFeaturedRoutine";
 import { useRoutines } from "@/features/routines/useRoutines";
 import { useActiveSession } from "@/features/workout-session/useActiveSession";
 import { RoutineCard } from "@/shared/components/RoutineCard";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
   const { activeSession, discard, recheck } = useActiveSession();
+  const { streakDays, reload: reloadStats } = useProfileStats();
+  const featured = useFeaturedRoutine(routines);
 
   useFocusEffect(
     useCallback(() => {
       recheck();
       reload();
-    }, [recheck, reload]),
+      reloadStats();
+    }, [recheck, reload, reloadStats]),
   );
 
   function handleStartRoutine(routineId: string) {
@@ -43,35 +41,34 @@ export default function HomeScreen() {
     );
   }
 
+  const restRoutines = routines.filter((r) => r.id !== featured?.id);
+
   return (
     <ScrollView
       className="flex-1 bg-bg-base px-4 pt-16"
-      contentContainerStyle={{ paddingBottom: 60 }}
+      contentContainerStyle={{ paddingBottom: 100 }}
     >
       <View className="flex-row items-center justify-between mb-1">
         <Text className="text-text-primary text-2xl font-bold">
           Hola, Carlos
         </Text>
-        <View className="flex-row gap-3">
-          <Text
-            className="text-accent"
-            onPress={() => router.push("/routines")}
+        {streakDays > 0 && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "#F5C518",
+            }}
           >
-            Rutinas
-          </Text>
-          <Text
-            className="text-accent"
-            onPress={() => router.push("/exercises")}
-          >
-            Ejercicios
-          </Text>
-          <Text className="text-accent" onPress={() => router.push("/history")}>
-            Historial
-          </Text>
-          <Text className="text-accent" onPress={() => router.push("/profile")}>
-            Perfil
-          </Text>
-        </View>
+            <Text style={{ color: "#F5C518", fontWeight: "600", fontSize: 13 }}>
+              🔥 {streakDays}
+            </Text>
+          </View>
+        )}
       </View>
       <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
 
@@ -84,22 +81,18 @@ export default function HomeScreen() {
             {activeSession.routineName}
           </Text>
           <View className="flex-row gap-3 mt-3">
-            <Pressable
+            <Text
+              className="rounded-pill bg-accent text-text-on-accent font-semibold px-4 py-2"
               onPress={() => router.push(`/execute/${activeSession.routineId}`)}
-              className="rounded-pill bg-accent px-4 py-2"
             >
-              <Text className="text-text-on-accent font-semibold">
-                Continuar
-              </Text>
-            </Pressable>
-            <Pressable
+              Continuar
+            </Text>
+            <Text
+              className="rounded-pill bg-bg-surface border border-border-subtle text-text-secondary font-semibold px-4 py-2"
               onPress={discard}
-              className="rounded-pill bg-bg-surface border border-border-subtle px-4 py-2"
             >
-              <Text className="text-text-secondary font-semibold">
-                Descartar
-              </Text>
-            </Pressable>
+              Descartar
+            </Text>
           </View>
         </View>
       )}
@@ -110,7 +103,23 @@ export default function HomeScreen() {
         </Text>
       )}
 
-      {routines.map((r) => (
+      {featured && (
+        <View className="mb-6">
+          <Text className="text-text-secondary text-sm mb-2">
+            Rutina destacada
+          </Text>
+          <RoutineCard
+            name={featured.name}
+            meta={`${featured.dayLabel} · ${featured.exerciseCount} ejercicios`}
+            onPress={() => handleStartRoutine(featured.id)}
+          />
+        </View>
+      )}
+
+      {restRoutines.length > 0 && (
+        <Text className="text-text-secondary text-sm mb-2">Tus rutinas</Text>
+      )}
+      {restRoutines.map((r) => (
         <RoutineCard
           key={r.id}
           name={r.name}
