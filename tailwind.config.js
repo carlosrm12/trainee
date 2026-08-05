@@ -17,6 +17,7 @@ module.exports = {
         "text-primary": "#FFFFFF",
         "text-secondary": "#9B9BA5",
         "text-on-accent": "#0E0E12",
+        "text-on-accent-muted": "#412402",
         success: "#4ADE80",
         danger: "#F26D6D",
         "border-subtle": "#2A2A32",

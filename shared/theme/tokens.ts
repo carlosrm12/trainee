@@ -10,11 +10,13 @@ export const colors = {
   textPrimary: "#FFFFFF",
   textSecondary: "#9B9BA5",
   textOnAccent: "#0E0E12",
+  textOnAccentMuted: "#412402",
   success: "#4ADE80",
   danger: "#F26D6D",
   borderSubtle: "#2A2A32",
 } as const;
 
+// Radios ya estaban dentro de los rangos de la v2 (card 16-18, chip 10-12, pill 20+) — sin cambios.
 export const radius = {
   card: 16,
   chip: 12,
@@ -22,9 +24,9 @@ export const radius = {
 } as const;
 
 export const fontSize = {
-  screenTitle: 24,
-  cardTitle: 18,
-  bigValue: 36,
-  body: 14,
-  chipLabel: 13,
+  screenTitle: 20, // 18-22px
+  cardTitle: 16, // 15-16px
+  bigValue: 36, // 28-40px
+  body: 12, // 11-13px
+  chipLabel: 10, // 9-11px
 } as const;
