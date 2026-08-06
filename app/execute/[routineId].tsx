@@ -1,3 +1,4 @@
+import { SQLiteRoutineRepository } from "@/data/repositories/SQLiteRoutineRepository";
 import type { SetLog } from "@/domain/entities";
 import type { ExecutionStep } from "@/features/workout-session/useExecuteRoutine";
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
@@ -6,6 +7,7 @@ import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession"
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
+import { StatRow } from "@/shared/components/StatRow";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
 import {
   perSideToTotal,
@@ -25,8 +27,16 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
+
+const routineRepo = new SQLiteRoutineRepository();
+
+function formatKg(n: number): string {
+  const rounded = Math.round(n);
+  return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 function workingSetsFor(logs: SetLog[], routineExerciseId: string) {
   return logs.filter(
@@ -63,11 +73,19 @@ export default function ExecuteRoutineScreen() {
   const [currentSetNumber, setCurrentSetNumber] = useState(1);
   const [weightKg, setWeightKg] = useState(0);
   const [reps, setReps] = useState(0);
-  const [routineFinished, setRoutineFinished] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [routineName, setRoutineName] = useState("");
+  const [sessionNotes, setSessionNotes] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [sessionSetLogs, setSessionSetLogs] = useState<SetLog[]>([]);
   const [showExerciseList, setShowExerciseList] = useState(false);
   const [justMarked, setJustMarked] = useState(false);
+
+  useEffect(() => {
+    routineRepo.getById(routineId).then((r) => {
+      if (r) setRoutineName(r.name);
+    });
+  }, [routineId]);
 
   async function refreshSessionLogs(): Promise<SetLog[]> {
     const logs = await getLoggedSets();
@@ -135,8 +153,7 @@ export default function ExecuteRoutineScreen() {
       );
 
       if (allDone) {
-        await completeSession(null);
-        setRoutineFinished(true);
+        setShowSummary(true);
       } else {
         const lastIndex = session.lastRoutineExerciseId
           ? execution.steps.findIndex(
@@ -208,8 +225,7 @@ export default function ExecuteRoutineScreen() {
     );
 
     if (allDone) {
-      await completeSession(null);
-      setRoutineFinished(true);
+      setShowSummary(true);
       return;
     }
 
@@ -229,6 +245,11 @@ export default function ExecuteRoutineScreen() {
     });
   }
 
+  async function handleSaveSummary() {
+    await completeSession(sessionNotes.trim() || null);
+    router.replace("/");
+  }
+
   if (execution.loading || !session || !initialized) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base">
@@ -237,24 +258,61 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
-  if (routineFinished) {
+  if (showSummary) {
+    const workingLogs = sessionSetLogs.filter((l) => !l.isWarmup);
+    const totalSets = workingLogs.length;
+    const totalVolumeKg = workingLogs.reduce(
+      (sum, l) => sum + l.weightKg * l.reps,
+      0,
+    );
+    const durationMinutes = Math.max(
+      1,
+      Math.round((Date.now() - new Date(session.date).getTime()) / 60000),
+    );
+
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base px-6">
+      <ScrollView
+        className="flex-1 bg-bg-base px-6 pt-20"
+        contentContainerStyle={{ paddingBottom: 60 }}
+      >
         <Text className="text-text-primary text-2xl font-bold text-center">
-          ¡Rutina completada! 🎉
+          ¡Sesión completada! 🎉
         </Text>
-        <Text className="text-text-secondary text-center mt-2">
-          El resumen detallado de la sesión llega en un paso más adelante.
+        <Text className="text-text-secondary text-center mt-1 mb-6">
+          {routineName}
         </Text>
-        <Pressable
-          onPress={() => router.replace("/")}
-          className="mt-8 rounded-pill bg-accent px-6 py-3"
-        >
-          <Text className="text-text-on-accent font-semibold">
-            Volver al inicio
+
+        <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
+          <Text className="text-text-secondary text-sm mb-3 text-center">
+            {durationMinutes} min · {execution.steps.length} ejercicios
           </Text>
-        </Pressable>
-      </View>
+          <StatRow
+            items={[
+              { value: String(totalSets), label: "sets" },
+              {
+                value: `${formatKg(totalVolumeKg)} kg`,
+                label: "volumen total",
+              },
+            ]}
+          />
+        </View>
+
+        <Text className="text-text-secondary text-sm mb-2">
+          Nota (opcional)
+        </Text>
+        <TextInput
+          value={sessionNotes}
+          onChangeText={setSessionNotes}
+          placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
+          placeholderTextColor="#9B9BA5"
+          multiline
+          numberOfLines={3}
+          className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
+          style={{ minHeight: 80, textAlignVertical: "top" }}
+        />
+
+        <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
+      </ScrollView>
     );
   }
 
