@@ -49,7 +49,13 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
     >
       <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-text-primary text-2xl font-bold">
+        <Text
+          style={{
+            color: "#FFFFFF",
+            fontFamily: "Inter_700Bold",
+            fontSize: 22,
+          }}
+        >
           Hola, Carlos
         </Text>
         {streakDays > 0 && (
@@ -64,7 +70,13 @@ export default function HomeScreen() {
               borderColor: "#F5C518",
             }}
           >
-            <Text style={{ color: "#F5C518", fontWeight: "600", fontSize: 13 }}>
+            <Text
+              style={{
+                color: "#F5C518",
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 13,
+              }}
+            >
               🔥 {streakDays}
             </Text>
           </View>
@@ -112,6 +124,7 @@ export default function HomeScreen() {
             name={featured.name}
             meta={`${featured.dayLabel} · ${featured.exerciseCount} ejercicios`}
             onPress={() => handleStartRoutine(featured.id)}
+            featured
           />
         </View>
       )}

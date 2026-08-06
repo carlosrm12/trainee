@@ -8,6 +8,7 @@ type BrutalistButtonProps = {
   variant?: "primary" | "fab";
   state?: "default" | "success";
   disabled?: boolean;
+  fullWidth?: boolean;
 };
 
 export function BrutalistButton({
@@ -16,6 +17,7 @@ export function BrutalistButton({
   variant = "primary",
   state = "default",
   disabled = false,
+  fullWidth = true,
 }: BrutalistButtonProps) {
   const translate = useRef(new Animated.Value(0)).current;
 
@@ -37,9 +39,10 @@ export function BrutalistButton({
 
   const bg = state === "success" ? colors.success : colors.accent;
   const isFab = variant === "fab";
+  const stretch = isFab ? "flex-end" : fullWidth ? "stretch" : "flex-start";
 
   return (
-    <View style={{ alignSelf: isFab ? "flex-end" : "stretch" }}>
+    <View style={{ alignSelf: stretch }}>
       {/* Sombra offset fija — no se mueve, el botón se desplaza sobre ella */}
       <View
         style={{

@@ -1,3 +1,4 @@
+import { AttachedTabButton } from "@/shared/components/AttachedTabButton";
 import { Tabs } from "expo-router";
 import { Dumbbell, History, Home, Search, User } from "lucide-react-native";
 
@@ -6,15 +7,18 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#F5C518",
+        tabBarActiveTintColor: "#0E0E12",
         tabBarInactiveTintColor: "#9B9BA5",
         tabBarLabelStyle: { fontFamily: "Inter_500Medium", fontSize: 11 },
+        tabBarButton: (props) => <AttachedTabButton {...props} />,
         tabBarStyle: {
           backgroundColor: "#0E0E12",
           borderTopColor: "#2A2A32",
           borderTopWidth: 1,
-          height: 64,
-          paddingTop: 8,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          height: 68,
+          paddingTop: 10,
         },
       }}
     >
