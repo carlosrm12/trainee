@@ -7,12 +7,26 @@ import {
 } from "@expo-google-fonts/inter";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import { Stack } from "expo-router";
+import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { db } from "../data/db/client";
 import { seedInitialData } from "../data/seedInitialData";
 import migrations from "../drizzle/migrations/migrations";
 import "../global.css";
+
+SystemUI.setBackgroundColorAsync("#0E0E12");
+
+// Aplica Inter como tipografía por defecto en TODO <Text> de la app, sin
+// tener que envolver cada componente manualmente — patrón estándar en RN.
+function applyDefaultFont() {
+  const TextAny = Text as any;
+  TextAny.defaultProps = TextAny.defaultProps || {};
+  TextAny.defaultProps.style = [
+    { fontFamily: "Inter_400Regular" },
+    TextAny.defaultProps.style,
+  ];
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -29,6 +43,10 @@ export default function RootLayout() {
     if (!success) return;
     seedInitialData().then(() => setSeeded(true));
   }, [success]);
+
+  useEffect(() => {
+    if (fontsLoaded) applyDefaultFont();
+  }, [fontsLoaded]);
 
   if (error || fontError) {
     return (

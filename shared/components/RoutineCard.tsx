@@ -19,26 +19,32 @@ export function RoutineCard({
     <View
       style={{
         borderRadius: featured ? radius.cardLg : radius.card,
-        borderWidth: 1,
-        borderColor: colors.borderSubtle,
+        borderWidth: featured ? 2 : 1,
+        borderColor: featured ? colors.accent : colors.borderSubtle,
         backgroundColor: featured ? colors.bgSurfaceAlt : colors.bgSurface,
-        padding: 16,
+        padding: featured ? 20 : 16,
         marginBottom: 12,
       }}
     >
       <Text
         style={{
           color: colors.textPrimary,
-          fontFamily: "Inter_600SemiBold",
-          fontSize: featured ? 20 : 16,
+          fontFamily: "Inter_700Bold",
+          fontSize: featured ? 22 : 16,
         }}
       >
         {name}
       </Text>
-      <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4 }}>
+      <Text
+        style={{
+          color: colors.textSecondary,
+          fontSize: featured ? 14 : 13,
+          marginTop: 4,
+        }}
+      >
         {meta}
       </Text>
-      <View style={{ marginTop: 12 }}>
+      <View style={{ marginTop: featured ? 16 : 12 }}>
         <BrutalistButton label="Empezar" onPress={onPress} fullWidth={false} />
       </View>
     </View>
