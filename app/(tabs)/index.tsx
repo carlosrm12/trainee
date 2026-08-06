@@ -3,12 +3,16 @@ import { useFeaturedRoutine } from "@/features/routines/useFeaturedRoutine";
 import { useRoutines } from "@/features/routines/useRoutines";
 import { useActiveSession } from "@/features/workout-session/useActiveSession";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
+import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { RoutineCard } from "@/shared/components/RoutineCard";
 import { StatRow } from "@/shared/components/StatRow";
 import { StreakBadge } from "@/shared/components/StreakBadge";
+import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+
+const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,6 +20,7 @@ export default function HomeScreen() {
   const { activeSession, discard, recheck } = useActiveSession();
   const { streakDays, reload: reloadStats } = useProfileStats();
   const featured = useFeaturedRoutine(routines);
+  const [selectedFilter, setSelectedFilter] = useState("Todas");
 
   useFocusEffect(
     useCallback(() => {
@@ -44,7 +49,14 @@ export default function HomeScreen() {
     );
   }
 
-  const restRoutines = routines.filter((r) => r.id !== featured?.id);
+  const restRoutines = routines
+    .filter((r) => r.id !== featured?.id)
+    .filter(
+      (r) =>
+        selectedFilter === "Todas" ||
+        (r.category ? MUSCLE_CATEGORY_LABEL[r.category] : null) ===
+          selectedFilter,
+    );
 
   return (
     <ScrollView
@@ -118,17 +130,41 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {restRoutines.length > 0 && (
-        <Text className="text-text-secondary text-sm mb-2">Tus rutinas</Text>
-      )}
-      {restRoutines.map((r) => (
-        <RoutineCard
-          key={r.id}
-          name={r.name}
-          meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-          onPress={() => handleStartRoutine(r.id)}
+      <View className="flex-row items-center justify-between mb-3">
+        <Text className="text-text-secondary text-sm">Tus rutinas</Text>
+        <Text
+          className="text-accent text-sm font-semibold"
+          onPress={() => router.push("/routines")}
+        >
+          Ver todas
+        </Text>
+      </View>
+
+      <View className="mb-4">
+        <FilterChipOutline
+          options={FILTER_OPTIONS}
+          selected={selectedFilter}
+          onSelect={setSelectedFilter}
         />
-      ))}
+      </View>
+
+      {restRoutines.length === 0 && (
+        <Text className="text-text-secondary">
+          No hay rutinas para este filtro.
+        </Text>
+      )}
+
+      <View className="flex-row flex-wrap justify-between">
+        {restRoutines.map((r) => (
+          <RoutineCard
+            key={r.id}
+            variant="grid"
+            name={r.name}
+            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+            onPress={() => handleStartRoutine(r.id)}
+          />
+        ))}
+      </View>
     </ScrollView>
   );
 }

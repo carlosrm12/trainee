@@ -1,7 +1,9 @@
 import { useRoutines } from "@/features/routines/useRoutines";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
+import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
+import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -10,9 +12,12 @@ import {
   View,
 } from "react-native";
 
+const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
+
 export default function RoutinesScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
+  const [selectedFilter, setSelectedFilter] = useState("Todas");
 
   useFocusEffect(
     useCallback(() => {
@@ -29,6 +34,12 @@ export default function RoutinesScreen() {
   }
 
   const todayDow = new Date().getDay();
+  const filteredRoutines = routines.filter(
+    (r) =>
+      selectedFilter === "Todas" ||
+      (r.category ? MUSCLE_CATEGORY_LABEL[r.category] : null) ===
+        selectedFilter,
+  );
 
   return (
     <View className="flex-1 bg-bg-base">
@@ -36,17 +47,27 @@ export default function RoutinesScreen() {
         className="flex-1 px-4 pt-16"
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <Text className="text-text-primary text-2xl font-bold mb-6">
+        <Text className="text-text-primary text-2xl font-bold mb-4">
           Rutinas
         </Text>
 
-        {routines.length === 0 && (
+        <View className="mb-6">
+          <FilterChipOutline
+            options={FILTER_OPTIONS}
+            selected={selectedFilter}
+            onSelect={setSelectedFilter}
+          />
+        </View>
+
+        {filteredRoutines.length === 0 && (
           <Text className="text-text-secondary">
-            Todavía no tienes rutinas. Crea la primera.
+            {routines.length === 0
+              ? "Todavía no tienes rutinas. Crea la primera."
+              : "No hay rutinas para este filtro."}
           </Text>
         )}
 
-        {routines.map((r) => (
+        {filteredRoutines.map((r) => (
           <View
             key={r.id}
             className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
