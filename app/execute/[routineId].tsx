@@ -3,6 +3,7 @@ import type { ExecutionStep } from "@/features/workout-session/useExecuteRoutine
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
 import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLookup";
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
+import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
@@ -66,6 +67,7 @@ export default function ExecuteRoutineScreen() {
   const [initialized, setInitialized] = useState(false);
   const [sessionSetLogs, setSessionSetLogs] = useState<SetLog[]>([]);
   const [showExerciseList, setShowExerciseList] = useState(false);
+  const [justMarked, setJustMarked] = useState(false);
 
   async function refreshSessionLogs(): Promise<SetLog[]> {
     const logs = await getLoggedSets();
@@ -143,8 +145,8 @@ export default function ExecuteRoutineScreen() {
           : -1;
         const lastStillIncomplete =
           lastIndex !== -1 &&
-          workingSetsFor(logs, execution.steps[lastIndex].id).length <
-            execution.steps[lastIndex].targetSets;
+          workingSetsFor(logs, execution.steps[lastIndex].id).length;
+        execution.steps[lastIndex].targetSets;
 
         const resumeIndex = lastStillIncomplete
           ? lastIndex
@@ -196,6 +198,10 @@ export default function ExecuteRoutineScreen() {
       );
       return;
     }
+
+    setJustMarked(true);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    setJustMarked(false);
 
     const allDone = execution.steps.every(
       (s) => workingSetsFor(updatedLogs, s.id).length >= s.targetSets,
@@ -435,14 +441,14 @@ export default function ExecuteRoutineScreen() {
         <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />
       </View>
 
-      <Pressable
-        onPress={handleMarkSet}
-        className="mt-8 self-center rounded-pill bg-accent px-8 py-4"
-      >
-        <Text className="text-text-on-accent font-semibold text-base">
-          ✓ Marcar set
-        </Text>
-      </Pressable>
+      <View className="mt-8 self-center">
+        <BrutalistButton
+          label={justMarked ? "✓ Listo" : "Marcar set"}
+          state={justMarked ? "success" : "default"}
+          disabled={justMarked}
+          onPress={handleMarkSet}
+        />
+      </View>
 
       <View className="flex-row justify-center gap-2 mt-6">
         {dotsData.map((d) => (
