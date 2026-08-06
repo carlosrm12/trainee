@@ -87,8 +87,11 @@ export function useRestTimer() {
       Math.round((endAtRef.current - Date.now()) / 1000),
     );
     setRemaining(secondsLeft);
-    if (secondsLeft <= 0) finish();
-  }, [finish]);
+    if (secondsLeft <= 0) {
+      clearTick();
+      setTimeout(finish, 400);
+    }
+  }, [finish, clearTick]);
 
   const start = useCallback(
     async (seconds: number, onFinish: () => void) => {
