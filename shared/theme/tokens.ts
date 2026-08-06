@@ -1,4 +1,4 @@
-// Fuente única de verdad para colores — sincronizado con docs/diseno-ui-ux-app-entrenamiento.md
+// Fuente única de verdad para colores — sincronizado con docs/diseno-ui-ux-app-entrenamiento.md v2
 // Si cambias un valor aquí, actualiza también tailwind.config.js
 
 export const colors = {
@@ -10,21 +10,29 @@ export const colors = {
   textPrimary: "#FFFFFF",
   textSecondary: "#9B9BA5",
   textOnAccent: "#0E0E12",
+  textOnAccentMuted: "#412402",
   success: "#4ADE80",
   danger: "#F26D6D",
   borderSubtle: "#2A2A32",
 } as const;
 
 export const radius = {
+  cardLg: 18,
   card: 16,
-  chip: 12,
-  pill: 24,
+  chip: 11,
+  pill: 22,
 } as const;
 
 export const fontSize = {
-  screenTitle: 24,
-  cardTitle: 18,
-  bigValue: 36,
-  body: 14,
-  chipLabel: 13,
+  screenTitle: 20,
+  cardTitle: 15,
+  bigValue: 34,
+  body: 12,
+  chipLabel: 10,
+} as const;
+
+// Sombra offset dura del neo-brutalismo — solo para BrutalistButton
+export const brutalistShadow = {
+  offset: 3,
+  color: colors.accentPressed,
 } as const;

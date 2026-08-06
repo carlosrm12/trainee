@@ -17,11 +17,24 @@ module.exports = {
         "text-primary": "#FFFFFF",
         "text-secondary": "#9B9BA5",
         "text-on-accent": "#0E0E12",
+        "text-on-accent-muted": "#412402",
         success: "#4ADE80",
         danger: "#F26D6D",
         "border-subtle": "#2A2A32",
       },
-      borderRadius: { card: "16px", chip: "12px", pill: "24px" },
+      borderRadius: {
+        "card-lg": "18px",
+        card: "16px",
+        chip: "11px",
+        pill: "22px",
+      },
+      // Agregamos las fuentes aquí
+      fontFamily: {
+        sans: ["Inter_400Regular"], // La fuente por defecto de tu app
+        medium: ["Inter_500Medium"],
+        semibold: ["Inter_600SemiBold"],
+        bold: ["Inter_700Bold"],
+      },
     },
   },
   plugins: [],
