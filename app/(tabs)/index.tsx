@@ -10,7 +10,14 @@ import { StreakBadge } from "@/shared/components/StreakBadge";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 
@@ -79,19 +86,23 @@ export default function HomeScreen() {
           <Text className="text-text-secondary text-sm mt-1">
             {activeSession.routineName}
           </Text>
-          <View className="flex-row gap-3 mt-3">
-            <Text
-              className="rounded-pill bg-accent text-text-on-accent font-semibold px-4 py-2"
-              onPress={() => router.push(`/execute/${activeSession.routineId}`)}
-            >
-              Continuar
-            </Text>
-            <Text
-              className="rounded-pill bg-bg-surface border border-border-subtle text-text-secondary font-semibold px-4 py-2"
+          <View className="flex-row items-center gap-3 mt-3">
+            <View className="flex-1">
+              <BrutalistButton
+                label="Continuar"
+                onPress={() =>
+                  router.push(`/execute/${activeSession.routineId}`)
+                }
+              />
+            </View>
+            <Pressable
               onPress={discard}
+              className="rounded-pill bg-bg-surface border border-border-subtle px-4 py-2"
             >
-              Descartar
-            </Text>
+              <Text className="text-text-secondary font-semibold">
+                Descartar
+              </Text>
+            </Pressable>
           </View>
         </View>
       )}
