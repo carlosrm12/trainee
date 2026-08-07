@@ -23,6 +23,12 @@ module.exports = {
         "border-subtle": "#2A2A32",
       },
       borderRadius: { card: "16px", chip: "12px", pill: "24px" },
+      fontFamily: {
+        sans: ["Inter_400Regular"],
+        medium: ["Inter_500Medium"],
+        semibold: ["Inter_600SemiBold"],
+        bold: ["Inter_700Bold"],
+      },
     },
   },
   plugins: [],
