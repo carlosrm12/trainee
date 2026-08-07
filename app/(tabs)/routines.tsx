@@ -1,16 +1,11 @@
 import { useRoutines } from "@/features/routines/useRoutines";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
+import { RoutineCard } from "@/shared/components/RoutineCard";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 
@@ -68,40 +63,14 @@ export default function RoutinesScreen() {
         )}
 
         {filteredRoutines.map((r) => (
-          <View
+          <RoutineCard
             key={r.id}
-            className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
-          >
-            <View className="flex-row items-center justify-between">
-              <Text className="text-text-primary text-base font-semibold">
-                {r.name}
-              </Text>
-              {r.dayOfWeek === todayDow && (
-                <View className="rounded-pill bg-accent px-3 py-1">
-                  <Text className="text-text-on-accent text-[10px] font-semibold uppercase">
-                    Hoy
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text className="text-text-secondary text-sm mt-1">
-              {r.dayLabel} · {r.exerciseCount} ejercicios
-            </Text>
-            <View className="flex-row items-center gap-3 mt-3">
-              <Pressable
-                onPress={() => router.push(`/routines/${r.id}/edit`)}
-                className="rounded-pill bg-bg-surface-alt border border-border-subtle px-4 py-2"
-              >
-                <Text className="text-text-primary font-semibold">Ver</Text>
-              </Pressable>
-              <View className="flex-1">
-                <BrutalistButton
-                  label="Empezar"
-                  onPress={() => router.push(`/execute/${r.id}`)}
-                />
-              </View>
-            </View>
-          </View>
+            name={r.name}
+            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+            isToday={r.dayOfWeek === todayDow}
+            onPress={() => router.push(`/routines/${r.id}/edit`)}
+            onStart={() => router.push(`/execute/${r.id}`)}
+          />
         ))}
       </ScrollView>
 
