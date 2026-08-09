@@ -20,11 +20,11 @@ export function StatRow({ items }: StatRowProps) {
             index > 0 ? "border-l border-border-subtle" : ""
           }`}
         >
-          <Text className="text-text-primary text-base font-semibold">
+          <Text className="text-text-primary text-base font-sans-semibold">
             {item.icon ? `${item.icon} ` : ""}
             {item.value}
           </Text>
-          <Text className="text-text-secondary text-[11px] mt-0.5">
+          <Text className="text-text-secondary text-[11px] font-sans mt-0.5">
             {item.label}
           </Text>
         </View>

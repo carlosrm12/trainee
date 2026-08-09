@@ -28,7 +28,7 @@ export function FilterChipOutline({
             }`}
           >
             <Text
-              className={`text-xs font-medium ${
+              className={`text-xs font-sans-medium ${
                 isSelected ? "text-accent" : "text-text-secondary"
               }`}
             >

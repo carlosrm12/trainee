@@ -9,7 +9,7 @@ export function StreakBadge({ days }: StreakBadgeProps) {
 
   return (
     <View className="flex-row items-center px-2.5 py-1 rounded-pill border border-accent">
-      <Text className="text-accent font-semibold text-xs">🔥 {days}</Text>
+      <Text className="text-accent font-sans-semibold text-xs">🔥 {days}</Text>
     </View>
   );
 }

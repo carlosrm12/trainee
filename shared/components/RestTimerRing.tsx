@@ -57,7 +57,9 @@ export function RestTimerRing({
         />
       </Svg>
       <View style={{ position: "absolute" }}>
-        <Text className="text-text-primary text-4xl font-bold">{label}</Text>
+        <Text className="text-text-primary text-4xl font-sans-bold">
+          {label}
+        </Text>
       </View>
     </View>
   );

@@ -25,8 +25,10 @@ export function SessionListItem({
     <Pressable onPress={onPress} className="flex-row items-center py-3">
       <Text className="text-lg mr-3">🏋</Text>
       <View className="flex-1">
-        <Text className="text-text-primary font-semibold">{routineName}</Text>
-        <Text className="text-text-secondary text-xs mt-0.5">
+        <Text className="text-text-primary font-sans-semibold">
+          {routineName}
+        </Text>
+        <Text className="text-text-secondary text-xs font-sans mt-0.5">
           {metaParts.join(" · ")}
         </Text>
       </View>

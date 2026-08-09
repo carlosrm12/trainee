@@ -5,7 +5,7 @@ type ExerciseRowState = "default" | "active" | "done";
 type ExerciseRowProps = {
   order: number;
   name: string;
-  meta: string; // ej. "4 sets · 8-10 reps"
+  meta: string;
   state?: ExerciseRowState;
 };
 
@@ -26,7 +26,7 @@ export function ExerciseRow({
         }`}
       >
         <Text
-          className={`text-xs font-bold ${
+          className={`text-xs font-sans-bold ${
             isDone || isActive ? "text-text-on-accent" : "text-text-secondary"
           }`}
         >
@@ -35,13 +35,15 @@ export function ExerciseRow({
       </View>
       <View className="flex-1">
         <Text
-          className={`font-semibold ${
+          className={`font-sans-semibold ${
             isDone ? "text-text-secondary" : "text-text-primary"
           }`}
         >
           {name}
         </Text>
-        <Text className="text-text-secondary text-sm mt-0.5">{meta}</Text>
+        <Text className="text-text-secondary text-sm font-sans mt-0.5">
+          {meta}
+        </Text>
       </View>
     </View>
   );
