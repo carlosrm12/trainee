@@ -25,9 +25,9 @@ module.exports = {
       borderRadius: { card: "16px", chip: "12px", pill: "24px" },
       fontFamily: {
         sans: ["Inter_400Regular"],
-        medium: ["Inter_500Medium"],
-        semibold: ["Inter_600SemiBold"],
-        bold: ["Inter_700Bold"],
+        "sans-medium": ["Inter_500Medium"],
+        "sans-semibold": ["Inter_600SemiBold"],
+        "sans-bold": ["Inter_700Bold"],
       },
     },
   },
