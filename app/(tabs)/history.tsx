@@ -66,7 +66,7 @@ export default function HistoryScreen() {
       className="flex-1 bg-bg-base px-4 pt-16"
       contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <Text className="text-text-primary text-2xl font-bold mb-4">
+      <Text className="text-text-primary text-2xl font-sans-bold mb-4">
         Historial
       </Text>
 
@@ -79,7 +79,7 @@ export default function HistoryScreen() {
       </View>
 
       {filteredSessions.length === 0 && (
-        <Text className="text-text-secondary">
+        <Text className="text-text-secondary font-sans">
           {sessions.length === 0
             ? "Todavía no registraste ninguna sesión."
             : "No hay sesiones en este rango."}
@@ -88,7 +88,7 @@ export default function HistoryScreen() {
 
       {mostRecent && (
         <View className="mb-6">
-          <Text className="text-text-secondary text-sm mb-2">
+          <Text className="text-text-secondary text-sm font-sans mb-2">
             Sesión más reciente
           </Text>
           <Pressable
@@ -96,12 +96,12 @@ export default function HistoryScreen() {
             className="rounded-card border border-border-subtle bg-bg-surface p-4"
           >
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-text-primary text-base font-semibold">
+              <Text className="text-text-primary text-base font-sans-semibold">
                 {mostRecent.routineName}
               </Text>
               {isToday(mostRecent.date) && (
                 <View className="rounded-pill bg-accent px-3 py-1">
-                  <Text className="text-text-on-accent text-[10px] font-semibold uppercase">
+                  <Text className="text-text-on-accent text-[10px] font-sans-semibold uppercase">
                     Hoy
                   </Text>
                 </View>
@@ -125,7 +125,7 @@ export default function HistoryScreen() {
 
       {olderSessions.length > 0 && (
         <>
-          <Text className="text-text-secondary text-sm mb-2">
+          <Text className="text-text-secondary text-sm font-sans mb-2">
             Sesiones anteriores
           </Text>
           <View className="rounded-card border border-border-subtle bg-bg-surface px-4">

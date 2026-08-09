@@ -61,9 +61,11 @@ export default function ExerciseCatalogScreen() {
   return (
     <View className="flex-1 bg-bg-base px-4 pt-16">
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-text-primary text-2xl font-bold">Ejercicios</Text>
+        <Text className="text-text-primary text-2xl font-sans-bold">
+          Ejercicios
+        </Text>
         <Pressable onPress={() => router.push("/exercises/new")}>
-          <Text className="text-accent font-semibold">+ Nuevo</Text>
+          <Text className="text-accent font-sans-semibold">+ Nuevo</Text>
         </Pressable>
       </View>
 
@@ -102,8 +104,8 @@ export default function ExerciseCatalogScreen() {
           <Text
             className={
               muscleGroupFilter === "all"
-                ? "text-text-on-accent font-semibold"
-                : "text-text-secondary"
+                ? "text-text-on-accent font-sans-semibold"
+                : "text-text-secondary font-sans"
             }
           >
             Todos
@@ -128,8 +130,8 @@ export default function ExerciseCatalogScreen() {
             <Text
               className={
                 muscleGroupFilter === g.value
-                  ? "text-text-on-accent font-semibold"
-                  : "text-text-secondary"
+                  ? "text-text-on-accent font-sans-semibold"
+                  : "text-text-secondary font-sans"
               }
             >
               {g.label}
@@ -143,7 +145,7 @@ export default function ExerciseCatalogScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {exercises.length === 0 && (
-          <Text className="text-text-secondary">
+          <Text className="text-text-secondary font-sans">
             No hay ejercicios con ese filtro.
           </Text>
         )}
@@ -154,14 +156,16 @@ export default function ExerciseCatalogScreen() {
             className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-text-primary font-semibold flex-1">
+              <Text className="text-text-primary font-sans-semibold flex-1">
                 {ex.name}
               </Text>
               {ex.isCustom && (
-                <Text className="text-text-secondary text-xs">custom</Text>
+                <Text className="text-text-secondary text-xs font-sans">
+                  custom
+                </Text>
               )}
             </View>
-            <Text className="text-text-secondary text-sm mt-1">
+            <Text className="text-text-secondary text-sm font-sans mt-1">
               {getMuscleGroupLabel(ex.muscleGroup)} ·{" "}
               {ex.weightInputMode === "per_side"
                 ? "peso por lado"
@@ -174,7 +178,7 @@ export default function ExerciseCatalogScreen() {
                 onPress={() => setEditingId(editingId === ex.id ? null : ex.id)}
                 className="rounded-pill bg-bg-surface-alt border border-border-subtle px-4 py-2"
               >
-                <Text className="text-text-primary font-semibold">
+                <Text className="text-text-primary font-sans-semibold">
                   {editingId === ex.id ? "Cerrar" : "Editar"}
                 </Text>
               </Pressable>
@@ -183,14 +187,14 @@ export default function ExerciseCatalogScreen() {
                   onPress={() => confirmDelete(ex.id, ex.name)}
                   className="rounded-pill bg-bg-surface-alt border border-danger px-4 py-2"
                 >
-                  <Text className="text-danger font-semibold">Borrar</Text>
+                  <Text className="text-danger font-sans-semibold">Borrar</Text>
                 </Pressable>
               )}
             </View>
 
             {editingId === ex.id && (
               <View className="mt-4 pt-4 border-t border-border-subtle">
-                <Text className="text-text-secondary text-sm mb-2">
+                <Text className="text-text-secondary text-sm font-sans mb-2">
                   Modo de peso
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -218,8 +222,8 @@ export default function ExerciseCatalogScreen() {
                       <Text
                         className={
                           ex.weightInputMode === m.value
-                            ? "text-text-on-accent font-semibold"
-                            : "text-text-secondary"
+                            ? "text-text-on-accent font-sans-semibold"
+                            : "text-text-secondary font-sans"
                         }
                       >
                         {m.label}
@@ -227,7 +231,7 @@ export default function ExerciseCatalogScreen() {
                     </Pressable>
                   ))}
                 </View>
-                <Text className="text-text-secondary text-sm mb-2 mt-4">
+                <Text className="text-text-secondary text-sm font-sans mb-2 mt-4">
                   Unidad
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
@@ -251,8 +255,8 @@ export default function ExerciseCatalogScreen() {
                       <Text
                         className={
                           ex.inputUnit === u.value
-                            ? "text-text-on-accent font-semibold"
-                            : "text-text-secondary"
+                            ? "text-text-on-accent font-sans-semibold"
+                            : "text-text-secondary font-sans"
                         }
                       >
                         {u.label}
