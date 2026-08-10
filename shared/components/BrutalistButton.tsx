@@ -29,7 +29,7 @@ export function BrutalistButton({
           disabled={disabled}
           className={`relative w-14 h-14 items-center justify-center rounded-full border-2 border-bg-base ${bg}`}
         >
-          <Text className="text-text-on-accent text-2xl font-bold">+</Text>
+          <Text className="text-text-on-accent text-2xl font-sans-bold">+</Text>
         </Pressable>
       </View>
     );
@@ -45,7 +45,7 @@ export function BrutalistButton({
         disabled={disabled}
         className={`relative items-center justify-center rounded-chip border-2 border-bg-base px-5 py-3 ${bg}`}
       >
-        <Text className="text-text-on-accent text-center font-semibold uppercase tracking-wide">
+        <Text className="text-text-on-accent text-center font-sans-semibold uppercase tracking-wide">
           {label}
         </Text>
       </Pressable>

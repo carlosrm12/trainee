@@ -275,15 +275,15 @@ export default function ExecuteRoutineScreen() {
         className="flex-1 bg-bg-base px-6 pt-20"
         contentContainerStyle={{ paddingBottom: 60 }}
       >
-        <Text className="text-text-primary text-2xl font-bold text-center">
+        <Text className="text-text-primary text-2xl font-sans-bold text-center">
           ¡Sesión completada! 🎉
         </Text>
-        <Text className="text-text-secondary text-center mt-1 mb-6">
+        <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
           {routineName}
         </Text>
 
         <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
-          <Text className="text-text-secondary text-sm mb-3 text-center">
+          <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
             {durationMinutes} min · {execution.steps.length} ejercicios
           </Text>
           <StatRow
@@ -297,7 +297,7 @@ export default function ExecuteRoutineScreen() {
           />
         </View>
 
-        <Text className="text-text-secondary text-sm mb-2">
+        <Text className="text-text-secondary text-sm font-sans mb-2">
           Nota (opcional)
         </Text>
         <TextInput
@@ -319,7 +319,7 @@ export default function ExecuteRoutineScreen() {
   if (rest.active) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-xl font-bold mb-8">
+        <Text className="text-text-primary text-xl font-sans-bold mb-8">
           Descanso
         </Text>
         <RestTimerRing remaining={rest.remaining} total={rest.total} />
@@ -328,17 +328,19 @@ export default function ExecuteRoutineScreen() {
             onPress={() => rest.adjust(-15)}
             className="rounded-pill bg-bg-surface-alt px-5 py-3"
           >
-            <Text className="text-text-primary font-semibold">-15s</Text>
+            <Text className="text-text-primary font-sans-semibold">-15s</Text>
           </Pressable>
           <Pressable
             onPress={() => rest.adjust(15)}
             className="rounded-pill bg-bg-surface-alt px-5 py-3"
           >
-            <Text className="text-text-primary font-semibold">+15s</Text>
+            <Text className="text-text-primary font-sans-semibold">+15s</Text>
           </Pressable>
         </View>
         <Pressable onPress={rest.skip} className="mt-8">
-          <Text className="text-text-secondary underline">Saltar descanso</Text>
+          <Text className="text-text-secondary font-sans underline">
+            Saltar descanso
+          </Text>
         </Pressable>
       </View>
     );
@@ -351,7 +353,9 @@ export default function ExecuteRoutineScreen() {
           <Pressable onPress={() => setShowExerciseList(false)}>
             <Text className="text-text-secondary text-2xl">✕</Text>
           </Pressable>
-          <Text className="text-text-primary font-semibold">Ejercicios</Text>
+          <Text className="text-text-primary font-sans-semibold">
+            Ejercicios
+          </Text>
           <View style={{ width: 24 }} />
         </View>
         <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
@@ -371,11 +375,11 @@ export default function ExecuteRoutineScreen() {
                     : "border-border-subtle"
                 }`}
               >
-                <Text className="text-text-primary font-semibold">
+                <Text className="text-text-primary font-sans-semibold">
                   {s.exercise.name}
                 </Text>
                 <Text
-                  className={`text-sm mt-1 ${done ? "text-success" : "text-text-secondary"}`}
+                  className={`text-sm font-sans mt-1 ${done ? "text-success" : "text-text-secondary"}`}
                 >
                   {logged}/{s.targetSets} sets {done ? "✓" : ""}
                 </Text>
@@ -391,14 +395,14 @@ export default function ExecuteRoutineScreen() {
   if (!step) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-lg text-center mb-6">
+        <Text className="text-text-primary text-lg font-sans text-center mb-6">
           Esta rutina no tiene ejercicios configurados.
         </Text>
         <Pressable
           onPress={() => router.replace(`/routines/${routineId}/edit`)}
           className="rounded-pill bg-accent px-6 py-3"
         >
-          <Text className="text-text-on-accent font-semibold">
+          <Text className="text-text-on-accent font-sans-semibold">
             Agregar ejercicios
           </Text>
         </Pressable>
@@ -438,24 +442,26 @@ export default function ExecuteRoutineScreen() {
           <Text className="text-text-secondary text-2xl">✕</Text>
         </Pressable>
         <Pressable onPress={() => setShowExerciseList(true)}>
-          <Text className="text-accent">
+          <Text className="text-accent font-sans">
             Ejercicio {execution.currentIndex + 1} de {execution.totalSteps} ▾
           </Text>
         </Pressable>
         <View style={{ width: 24 }} />
       </View>
 
-      <Text className="text-text-primary text-3xl font-bold">
+      <Text className="text-text-primary text-3xl font-sans-bold">
         {step.exercise.name}
       </Text>
-      <Text className="text-text-secondary mt-1">
+      <Text className="text-text-secondary font-sans mt-1">
         grupo: {step.exercise.muscleGroup}
       </Text>
 
       {warmupsForCurrentStep.length > 0 && (
         <View className="mt-4">
-          <Text className="text-text-secondary text-xs">Calentamiento</Text>
-          <Text className="text-text-secondary text-sm mt-1">
+          <Text className="text-text-secondary text-xs font-sans">
+            Calentamiento
+          </Text>
+          <Text className="text-text-secondary text-sm font-sans mt-1">
             {warmupsForCurrentStep
               .map(
                 (w) => `${kgToDisplayUnit(w.weightKg, step)}${unit}×${w.reps}`,
@@ -466,13 +472,13 @@ export default function ExecuteRoutineScreen() {
       )}
 
       <Pressable onPress={handleAddWarmup} className="mt-3">
-        <Text className="text-text-secondary text-sm underline">
+        <Text className="text-text-secondary text-sm font-sans underline">
           + Agregar calentamiento ({totalInUnit}
           {unit} × {reps})
         </Text>
       </Pressable>
 
-      <Text className="text-text-secondary mt-6">
+      <Text className="text-text-secondary font-sans mt-6">
         Set {currentSetNumber} de {step.targetSets} · objetivo {step.repMin}-
         {step.repMax} reps
       </Text>

@@ -45,7 +45,7 @@ export function AttachedBottomNav({
                   className="flex-row items-center gap-2 bg-accent rounded-pill px-4 py-2"
                 >
                   {icon}
-                  <Text className="text-text-on-accent font-semibold text-xs">
+                  <Text className="text-text-on-accent font-sans-semibold text-xs">
                     {label}
                   </Text>
                 </Pressable>
@@ -59,7 +59,7 @@ export function AttachedBottomNav({
                 className="items-center py-1 px-2"
               >
                 {icon}
-                <Text className="text-text-secondary text-[10px] mt-1">
+                <Text className="text-text-secondary text-[10px] font-sans mt-1">
                   {label}
                 </Text>
               </Pressable>

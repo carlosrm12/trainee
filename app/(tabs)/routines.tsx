@@ -42,7 +42,7 @@ export default function RoutinesScreen() {
         className="flex-1 px-4 pt-16"
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <Text className="text-text-primary text-2xl font-bold mb-4">
+        <Text className="text-text-primary text-2xl font-sans-bold mb-4">
           Rutinas
         </Text>
 
@@ -55,7 +55,7 @@ export default function RoutinesScreen() {
         </View>
 
         {filteredRoutines.length === 0 && (
-          <Text className="text-text-secondary">
+          <Text className="text-text-secondary font-sans">
             {routines.length === 0
               ? "Todavía no tienes rutinas. Crea la primera."
               : "No hay rutinas para este filtro."}

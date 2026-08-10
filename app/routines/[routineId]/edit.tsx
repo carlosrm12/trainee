@@ -108,7 +108,7 @@ export default function EditRoutineScreen() {
           <Pressable onPress={() => setShowPicker(false)}>
             <Text className="text-text-secondary text-2xl">✕</Text>
           </Pressable>
-          <Text className="text-text-primary font-semibold">
+          <Text className="text-text-primary font-sans-semibold">
             Elegir ejercicio
           </Text>
           <View style={{ width: 24 }} />
@@ -135,10 +135,10 @@ export default function EditRoutineScreen() {
                 }}
                 className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
               >
-                <Text className="text-text-primary font-semibold">
+                <Text className="text-text-primary font-sans-semibold">
                   {ex.name}
                 </Text>
-                <Text className="text-text-secondary text-sm mt-1">
+                <Text className="text-text-secondary text-sm font-sans mt-1">
                   {ex.muscleGroup}
                 </Text>
               </Pressable>
@@ -164,14 +164,16 @@ export default function EditRoutineScreen() {
 
       {editingInfo ? (
         <View className="mb-8 mt-4">
-          <Text className="text-text-secondary mb-2">Nombre</Text>
+          <Text className="text-text-secondary font-sans mb-2">Nombre</Text>
           <TextInput
             value={nameDraft}
             onChangeText={setNameDraft}
             placeholderTextColor="#9B9BA5"
             className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-4"
           />
-          <Text className="text-text-secondary mb-2">Día de la semana</Text>
+          <Text className="text-text-secondary font-sans mb-2">
+            Día de la semana
+          </Text>
           <View className="flex-row flex-wrap gap-2 mb-4">
             {DAYS.map((d) => (
               <Pressable
@@ -188,8 +190,8 @@ export default function EditRoutineScreen() {
                 <Text
                   className={
                     dayDraft === d.value
-                      ? "text-text-on-accent font-semibold"
-                      : "text-text-secondary"
+                      ? "text-text-on-accent font-sans-semibold"
+                      : "text-text-secondary font-sans"
                   }
                 >
                   {d.label}
@@ -206,8 +208,8 @@ export default function EditRoutineScreen() {
               <Text
                 className={
                   nameDraft.trim()
-                    ? "text-text-on-accent font-semibold"
-                    : "text-text-secondary"
+                    ? "text-text-on-accent font-sans-semibold"
+                    : "text-text-secondary font-sans"
                 }
               >
                 Guardar
@@ -217,7 +219,7 @@ export default function EditRoutineScreen() {
               onPress={() => setEditingInfo(false)}
               className="rounded-pill bg-bg-surface border border-border-subtle px-5 py-3"
             >
-              <Text className="text-text-secondary font-semibold">
+              <Text className="text-text-secondary font-sans-semibold">
                 Cancelar
               </Text>
             </Pressable>
@@ -225,21 +227,21 @@ export default function EditRoutineScreen() {
         </View>
       ) : (
         <View className="mt-4 mb-8">
-          <Text className="text-text-primary text-2xl font-bold">
+          <Text className="text-text-primary text-2xl font-sans-bold">
             {routine?.name ?? "Rutina"}
           </Text>
-          <Text className="text-text-secondary text-sm mt-1">
+          <Text className="text-text-secondary text-sm font-sans mt-1">
             {routine ? getDayLabel(routine.dayOfWeek) : ""}
           </Text>
         </View>
       )}
 
-      <Text className="text-text-secondary text-sm mb-2">
+      <Text className="text-text-secondary text-sm font-sans mb-2">
         Ejercicios ({items.length})
       </Text>
 
       {items.length === 0 && (
-        <Text className="text-text-secondary mb-6">
+        <Text className="text-text-secondary font-sans mb-6">
           Todavía no hay ejercicios. Agrega el primero.
         </Text>
       )}
@@ -271,7 +273,7 @@ export default function EditRoutineScreen() {
                       className={
                         index === 0
                           ? "text-border-subtle"
-                          : "text-text-secondary"
+                          : "text-text-secondary font-sans"
                       }
                     >
                       ▲
@@ -285,7 +287,7 @@ export default function EditRoutineScreen() {
                       className={
                         index === items.length - 1
                           ? "text-border-subtle"
-                          : "text-text-secondary"
+                          : "text-text-secondary font-sans"
                       }
                     >
                       ▼
@@ -300,7 +302,7 @@ export default function EditRoutineScreen() {
                     onPress={() => removeExercise(item.id)}
                     className="self-start rounded-pill bg-bg-surface-alt border border-danger px-4 py-2 mb-3"
                   >
-                    <Text className="text-danger font-semibold">
+                    <Text className="text-danger font-sans-semibold">
                       Quitar ejercicio
                     </Text>
                   </Pressable>
@@ -351,7 +353,7 @@ export default function EditRoutineScreen() {
         onPress={() => setShowPicker(true)}
         className="rounded-pill bg-bg-surface border border-border-subtle py-4 items-center mb-8"
       >
-        <Text className="text-text-primary font-semibold">
+        <Text className="text-text-primary font-sans-semibold">
           + Agregar ejercicio
         </Text>
       </Pressable>

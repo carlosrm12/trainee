@@ -65,27 +65,31 @@ export default function SessionDetailScreen() {
           <Text className="text-text-secondary text-2xl">‹</Text>
         </Pressable>
         <Pressable onPress={confirmDelete}>
-          <Text className="text-danger">Borrar</Text>
+          <Text className="text-danger font-sans">Borrar</Text>
         </Pressable>
       </View>
 
-      <Text className="text-text-primary text-2xl font-bold">
+      <Text className="text-text-primary text-2xl font-sans-bold">
         {routineName}
       </Text>
-      <Text className="text-text-secondary mt-1">
+      <Text className="text-text-secondary font-sans mt-1">
         {formatSessionDate(dateIso)}
       </Text>
 
       <View className="flex-row gap-8 mt-6 mb-8">
         <View>
-          <Text className="text-text-secondary text-sm">Sets totales</Text>
-          <Text className="text-text-primary text-xl font-bold">
+          <Text className="text-text-secondary text-sm font-sans">
+            Sets totales
+          </Text>
+          <Text className="text-text-primary text-xl font-sans-bold">
             {totalSets}
           </Text>
         </View>
         <View>
-          <Text className="text-text-secondary text-sm">Volumen total</Text>
-          <Text className="text-text-primary text-xl font-bold">
+          <Text className="text-text-secondary text-sm font-sans">
+            Volumen total
+          </Text>
+          <Text className="text-text-primary text-xl font-sans-bold">
             {formatWeight(totalVolumeKg, weightUnit)}
           </Text>
         </View>
@@ -96,12 +100,12 @@ export default function SessionDetailScreen() {
           <Pressable
             onPress={() => router.push(`/history/exercise/${g.exerciseId}`)}
           >
-            <Text className="text-accent font-semibold mb-2">
+            <Text className="text-accent font-sans-semibold mb-2">
               {g.exerciseName} →
             </Text>
           </Pressable>
           {g.sets.map((s) => (
-            <Text key={s.id} className="text-text-secondary">
+            <Text key={s.id} className="text-text-secondary font-sans">
               {s.isWarmup ? "Calentamiento" : `Set ${s.setNumber}`}:{" "}
               {formatWeight(s.weightKg, weightUnit)} × {s.reps} reps
             </Text>

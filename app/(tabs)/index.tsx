@@ -71,19 +71,21 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: 100 }}
     >
       <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-text-primary text-2xl font-bold">
+        <Text className="text-text-primary text-2xl font-sans-bold">
           Hola, Carlos
         </Text>
         <StreakBadge days={streakDays} />
       </View>
-      <Text className="text-text-secondary mb-6">Tus rutinas de la semana</Text>
+      <Text className="text-text-secondary font-sans mb-6">
+        Tus rutinas de la semana
+      </Text>
 
       {activeSession && (
         <View className="rounded-card border border-accent bg-bg-surface-alt p-4 mb-6">
-          <Text className="text-text-primary font-semibold">
+          <Text className="text-text-primary font-sans-semibold">
             Entrenamiento sin terminar
           </Text>
-          <Text className="text-text-secondary text-sm mt-1">
+          <Text className="text-text-secondary text-sm font-sans mt-1">
             {activeSession.routineName}
           </Text>
           <View className="flex-row items-center gap-3 mt-3">
@@ -99,7 +101,7 @@ export default function HomeScreen() {
               onPress={discard}
               className="rounded-pill bg-bg-surface border border-border-subtle px-4 py-2"
             >
-              <Text className="text-text-secondary font-semibold">
+              <Text className="text-text-secondary font-sans-semibold">
                 Descartar
               </Text>
             </Pressable>
@@ -108,21 +110,21 @@ export default function HomeScreen() {
       )}
 
       {routines.length === 0 && (
-        <Text className="text-text-secondary">
+        <Text className="text-text-secondary font-sans">
           Todavía no tienes rutinas cargadas.
         </Text>
       )}
 
       {featured && (
         <View className="mb-6">
-          <Text className="text-text-secondary text-sm mb-2">
+          <Text className="text-text-secondary text-sm font-sans mb-2">
             Rutina destacada
           </Text>
           <View className="rounded-card border border-border-subtle bg-bg-surface p-4">
-            <Text className="text-text-primary text-base font-semibold">
+            <Text className="text-text-primary text-base font-sans-semibold">
               {featured.name}
             </Text>
-            <Text className="text-text-secondary text-sm mt-1 mb-3">
+            <Text className="text-text-secondary text-sm font-sans mt-1 mb-3">
               {featured.dayLabel}
             </Text>
             <StatRow
@@ -142,9 +144,11 @@ export default function HomeScreen() {
       )}
 
       <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-text-secondary text-sm">Tus rutinas</Text>
+        <Text className="text-text-secondary text-sm font-sans">
+          Tus rutinas
+        </Text>
         <Text
-          className="text-accent text-sm font-semibold"
+          className="text-accent text-sm font-sans-semibold"
           onPress={() => router.push("/routines")}
         >
           Ver todas
@@ -160,7 +164,7 @@ export default function HomeScreen() {
       </View>
 
       {restRoutines.length === 0 && (
-        <Text className="text-text-secondary">
+        <Text className="text-text-secondary font-sans">
           No hay rutinas para este filtro.
         </Text>
       )}
