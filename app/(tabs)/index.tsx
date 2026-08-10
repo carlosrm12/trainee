@@ -1,3 +1,4 @@
+import { useReminders } from "@/features/notifications/useReminders";
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useFeaturedRoutine } from "@/features/routines/useFeaturedRoutine";
 import { useRoutines } from "@/features/routines/useRoutines";
@@ -25,9 +26,11 @@ export default function HomeScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
   const { activeSession, discard, recheck } = useActiveSession();
-  const { streakDays, reload: reloadStats } = useProfileStats();
+  const { streakDays, trainedToday, reload: reloadStats } = useProfileStats();
   const featured = useFeaturedRoutine(routines);
   const [selectedFilter, setSelectedFilter] = useState("Todas");
+
+  const reminders = useReminders({ routines, streakDays, trainedToday });
 
   useFocusEffect(
     useCallback(() => {
@@ -74,7 +77,17 @@ export default function HomeScreen() {
         <Text className="text-text-primary text-2xl font-sans-bold">
           Hola, Carlos
         </Text>
-        <StreakBadge days={streakDays} />
+        <View className="flex-row items-center gap-3">
+          <Pressable onPress={() => router.push("/reminders")}>
+            <View>
+              <Text className="text-2xl">🔔</Text>
+              {reminders.length > 0 && (
+                <View className="absolute -top-0.5 -right-0.5 bg-danger rounded-full w-2.5 h-2.5" />
+              )}
+            </View>
+          </Pressable>
+          <StreakBadge days={streakDays} />
+        </View>
       </View>
       <Text className="text-text-secondary font-sans mb-4">
         Tus rutinas de la semana
