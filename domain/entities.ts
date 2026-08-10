@@ -108,6 +108,10 @@ export type WeightUnit = "kg" | "lb";
 
 export interface UserSettings {
   weightUnit: WeightUnit;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
+  notificationsEnabled: boolean;
+  avatarUri: string | null;
 }
 
 export interface SettingsRepository {

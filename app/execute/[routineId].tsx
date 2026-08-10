@@ -1,5 +1,6 @@
 import { SQLiteRoutineRepository } from "@/data/repositories/SQLiteRoutineRepository";
 import type { SetLog } from "@/domain/entities";
+import { useSettings } from "@/features/profile/useSettings";
 import type { ExecutionStep } from "@/features/workout-session/useExecuteRoutine";
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
 import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLookup";
@@ -68,7 +69,13 @@ export default function ExecuteRoutineScreen() {
   const { session, logSet, getLoggedSets, updatePosition, completeSession } =
     useWorkoutSession(routineId);
   const { getLastWeight } = useLastWeightLookup();
-  const rest = useRestTimer();
+  const { soundEnabled, vibrationEnabled, notificationsEnabled } =
+    useSettings();
+  const rest = useRestTimer({
+    soundEnabled,
+    vibrationEnabled,
+    notificationsEnabled,
+  });
 
   const [currentSetNumber, setCurrentSetNumber] = useState(1);
   const [weightKg, setWeightKg] = useState(0);
@@ -322,7 +329,11 @@ export default function ExecuteRoutineScreen() {
         <Text className="text-text-primary text-xl font-sans-bold mb-8">
           Descanso
         </Text>
-        <RestTimerRing remaining={rest.remaining} total={rest.total} />
+        <RestTimerRing
+          remaining={rest.remaining}
+          total={rest.total}
+          onSkip={rest.skip}
+        />
         <View className="flex-row gap-4 mt-10">
           <Pressable
             onPress={() => rest.adjust(-15)}
@@ -337,11 +348,6 @@ export default function ExecuteRoutineScreen() {
             <Text className="text-text-primary font-sans-semibold">+15s</Text>
           </Pressable>
         </View>
-        <Pressable onPress={rest.skip} className="mt-8">
-          <Text className="text-text-secondary font-sans underline">
-            Saltar descanso
-          </Text>
-        </Pressable>
       </View>
     );
   }
