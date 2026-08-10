@@ -35,18 +35,18 @@ export default function ExerciseProgressScreen() {
         <Text className="text-text-secondary text-2xl">‹</Text>
       </Pressable>
 
-      <Text className="text-text-primary text-2xl font-bold mb-8">
+      <Text className="text-text-primary text-2xl font-sans-bold mb-8">
         {exerciseName}
       </Text>
 
       {/* Gráfica de volumen — Fase 2 (victory-native), fuera de este roadmap */}
 
-      <Text className="text-text-secondary text-sm mb-2">
+      <Text className="text-text-secondary text-sm font-sans mb-2">
         Historial de sets
       </Text>
 
       {sessionGroups.length === 0 && (
-        <Text className="text-text-secondary">
+        <Text className="text-text-secondary font-sans">
           Todavía no hay sesiones completadas con este ejercicio.
         </Text>
       )}
@@ -60,10 +60,10 @@ export default function ExerciseProgressScreen() {
                 index > 0 ? "border-t border-border-subtle" : ""
               }`}
             >
-              <Text className="text-text-secondary text-sm">
+              <Text className="text-text-secondary text-sm font-sans">
                 {formatShortDate(g.dateIso)}
               </Text>
-              <Text className="text-text-primary text-sm flex-1 text-right ml-3">
+              <Text className="text-text-primary text-sm font-sans flex-1 text-right ml-3">
                 {g.sets
                   .map(
                     (s) => `${formatWeight(s.weightKg, weightUnit)}×${s.reps}`,

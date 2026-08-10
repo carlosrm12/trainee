@@ -25,11 +25,11 @@ export default function NewRoutineScreen() {
         <Text className="text-text-secondary text-2xl">‹</Text>
       </Pressable>
 
-      <Text className="text-text-primary text-2xl font-bold mb-6">
+      <Text className="text-text-primary text-2xl font-sans-bold mb-6">
         Nueva rutina
       </Text>
 
-      <Text className="text-text-secondary mb-2">Nombre</Text>
+      <Text className="text-text-secondary font-sans mb-2">Nombre</Text>
       <TextInput
         value={name}
         onChangeText={setName}
@@ -38,7 +38,7 @@ export default function NewRoutineScreen() {
         className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-6"
       />
 
-      <Text className="text-text-secondary mb-2">
+      <Text className="text-text-secondary font-sans mb-2">
         Día de la semana (opcional)
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-8">
@@ -55,8 +55,8 @@ export default function NewRoutineScreen() {
             <Text
               className={
                 dayOfWeek === d.value
-                  ? "text-text-on-accent font-semibold"
-                  : "text-text-secondary"
+                  ? "text-text-on-accent font-sans-semibold"
+                  : "text-text-secondary font-sans"
               }
             >
               {d.label}
@@ -73,8 +73,8 @@ export default function NewRoutineScreen() {
         <Text
           className={
             name.trim()
-              ? "text-text-on-accent font-semibold"
-              : "text-text-secondary"
+              ? "text-text-on-accent font-sans-semibold"
+              : "text-text-secondary font-sans"
           }
         >
           {creating ? "Creando..." : "Crear rutina"}
