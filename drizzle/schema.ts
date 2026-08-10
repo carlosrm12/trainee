@@ -75,4 +75,14 @@ export const setLogs = sqliteTable("set_logs", {
 export const userSettings = sqliteTable("user_settings", {
   id: text("id").primaryKey(),
   weightUnit: text("weight_unit").notNull().default("kg"), // "kg" | "lb"
+  soundEnabled: integer("sound_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  vibrationEnabled: integer("vibration_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  notificationsEnabled: integer("notifications_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  avatarUri: text("avatar_uri"), // ruta local del avatar copiado a documentDirectory, null = sin foto
 });

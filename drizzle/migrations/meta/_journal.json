@@ -43,6 +43,13 @@
       "when": 1785881903485,
       "tag": "0005_faithful_proteus",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786334463317,
+      "tag": "0006_overjoyed_siren",
+      "breakpoints": true
     }
   ]
 }

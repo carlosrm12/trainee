@@ -1,12 +1,17 @@
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useSettings } from "@/features/profile/useSettings";
 import { StatRow } from "@/shared/components/StatRow";
+import { File, Paths } from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Image,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -22,6 +27,22 @@ function toggleStyle(active: boolean) {
   };
 }
 
+const AVATAR_FILENAME = "avatar.jpg";
+
+// Copia la imagen elegida al directorio de documentos para que sobreviva
+// más allá del caché temporal del picker (que puede limpiarse entre sesiones).
+async function persistAvatar(pickedUri: string): Promise<string> {
+  const source = new File(pickedUri);
+  const dest = new File(Paths.document, AVATAR_FILENAME);
+  if (dest.exists) {
+    dest.delete();
+  }
+  await source.copy(dest);
+  // Cache-bust: mismo nombre de archivo si reemplazas la foto, así que
+  // forzamos a Image a recargar con un query param único.
+  return `${dest.uri}?v=${Date.now()}`;
+}
+
 export default function ProfileScreen() {
   const {
     loading: statsLoading,
@@ -29,13 +50,48 @@ export default function ProfileScreen() {
     streakDays,
     reload,
   } = useProfileStats();
-  const { loading: settingsLoading, weightUnit, setWeightUnit } = useSettings();
+  const {
+    loading: settingsLoading,
+    weightUnit,
+    setWeightUnit,
+    soundEnabled,
+    setSoundEnabled,
+    vibrationEnabled,
+    setVibrationEnabled,
+    notificationsEnabled,
+    setNotificationsEnabled,
+    avatarUri,
+    setAvatarUri,
+  } = useSettings();
 
   useFocusEffect(
     useCallback(() => {
       reload();
     }, [reload]),
   );
+
+  async function handlePickAvatar() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        "Permiso necesario",
+        "Necesitamos acceso a tus fotos para poner un avatar.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    const persistedUri = await persistAvatar(result.assets[0].uri);
+    await setAvatarUri(persistedUri);
+  }
 
   if (statsLoading || settingsLoading) {
     return (
@@ -50,10 +106,33 @@ export default function ProfileScreen() {
       className="flex-1 bg-bg-base px-6 pt-16"
       contentContainerStyle={{ paddingBottom: 100 }}
     >
-      <Text className="text-text-primary text-2xl font-sans-bold mb-1">
+      <View className="items-center mb-6">
+        <Pressable onPress={handlePickAvatar}>
+          {avatarUri ? (
+            <Image
+              source={{ uri: avatarUri }}
+              style={{ width: 88, height: 88, borderRadius: 44 }}
+            />
+          ) : (
+            <View
+              className="items-center justify-center bg-bg-surface border border-border-subtle"
+              style={{ width: 88, height: 88, borderRadius: 44 }}
+            >
+              <Text className="text-text-secondary text-3xl">🏋️</Text>
+            </View>
+          )}
+          <View className="absolute -bottom-1 -right-1 bg-accent rounded-full w-7 h-7 items-center justify-center border-2 border-bg-base">
+            <Text className="text-text-on-accent text-xs">✎</Text>
+          </View>
+        </Pressable>
+      </View>
+
+      <Text className="text-text-primary text-2xl font-sans-bold mb-1 text-center">
         Carlos
       </Text>
-      <Text className="text-text-secondary font-sans mb-8">Tu progreso</Text>
+      <Text className="text-text-secondary font-sans mb-8 text-center">
+        Tu progreso
+      </Text>
 
       <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-10">
         <StatRow
@@ -65,10 +144,11 @@ export default function ProfileScreen() {
       </View>
 
       <Text className="text-text-primary font-sans-semibold mb-3">Ajustes</Text>
+
       <Text className="text-text-secondary text-sm font-sans mb-2">
         Unidad de peso
       </Text>
-      <View className="flex-row gap-2">
+      <View className="flex-row gap-2 mb-6">
         <Pressable
           onPress={() => setWeightUnit("kg")}
           style={toggleStyle(weightUnit === "kg")}
@@ -97,6 +177,59 @@ export default function ProfileScreen() {
             Libras (lb)
           </Text>
         </Pressable>
+      </View>
+
+      <View className="rounded-card border border-border-subtle bg-bg-surface">
+        <View className="flex-row items-center justify-between px-4 py-4 border-b border-border-subtle">
+          <View className="flex-1 pr-3">
+            <Text className="text-text-primary font-sans-semibold">
+              Notificaciones
+            </Text>
+            <Text className="text-text-secondary text-xs font-sans mt-0.5">
+              Avisa cuando termina el descanso, aunque tengas la app cerrada.
+            </Text>
+          </View>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4 border-b border-border-subtle">
+          <View className="flex-1 pr-3">
+            <Text className="text-text-primary font-sans-semibold">
+              Sonido del timer
+            </Text>
+            <Text className="text-text-secondary text-xs font-sans mt-0.5">
+              Reproduce un sonido al terminar el descanso.
+            </Text>
+          </View>
+          <Switch
+            value={soundEnabled}
+            onValueChange={setSoundEnabled}
+            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between px-4 py-4">
+          <View className="flex-1 pr-3">
+            <Text className="text-text-primary font-sans-semibold">
+              Vibración del timer
+            </Text>
+            <Text className="text-text-secondary text-xs font-sans mt-0.5">
+              Vibra al terminar el descanso con la app abierta.
+            </Text>
+          </View>
+          <Switch
+            value={vibrationEnabled}
+            onValueChange={setVibrationEnabled}
+            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
       </View>
     </ScrollView>
   );
