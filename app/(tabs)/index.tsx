@@ -76,9 +76,19 @@ export default function HomeScreen() {
         </Text>
         <StreakBadge days={streakDays} />
       </View>
-      <Text className="text-text-secondary font-sans mb-6">
+      <Text className="text-text-secondary font-sans mb-4">
         Tus rutinas de la semana
       </Text>
+
+      <Pressable
+        onPress={() => router.push("/search")}
+        className="flex-row items-center bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 mb-6"
+      >
+        <Text className="text-text-secondary mr-2">🔍</Text>
+        <Text className="text-text-secondary font-sans">
+          Buscar ejercicio, rutina o historial
+        </Text>
+      </Pressable>
 
       {activeSession && (
         <View className="rounded-card border border-accent bg-bg-surface-alt p-4 mb-6">
