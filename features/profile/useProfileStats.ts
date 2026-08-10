@@ -11,6 +11,7 @@ export function useProfileStats() {
   const [loading, setLoading] = useState(true);
   const [totalSessions, setTotalSessions] = useState(0);
   const [streakDays, setStreakDays] = useState(0);
+  const [trainedToday, setTrainedToday] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -28,6 +29,8 @@ export function useProfileStats() {
     yesterday.setDate(yesterday.getDate() - 1);
     const todayStr = toDateOnly(today.toISOString());
     const yesterdayStr = toDateOnly(yesterday.toISOString());
+
+    setTrainedToday(uniqueDays[0] === todayStr);
 
     let streak = 0;
     // La racha sigue "viva" si entrenaste hoy o ayer (no se rompe hasta que
@@ -56,5 +59,5 @@ export function useProfileStats() {
     load();
   }, [load]);
 
-  return { loading, totalSessions, streakDays, reload: load };
+  return { loading, totalSessions, streakDays, trainedToday, reload: load };
 }
