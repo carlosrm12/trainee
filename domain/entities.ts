@@ -50,6 +50,7 @@ export interface WorkoutSession {
   id: string;
   routineId: string;
   date: string;
+  completedAt: string | null;
   status: SessionStatus;
   notes: string | null;
   lastRoutineExerciseId: string | null;

@@ -1,10 +1,13 @@
+import { SQLiteRoutineRepository } from "@/data/repositories/SQLiteRoutineRepository";
 import type { SetLog } from "@/domain/entities";
 import type { ExecutionStep } from "@/features/workout-session/useExecuteRoutine";
 import { useExecuteRoutine } from "@/features/workout-session/useExecuteRoutine";
 import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLookup";
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
+import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
 import { SetStepper } from "@/shared/components/SetStepper";
+import { StatRow } from "@/shared/components/StatRow";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
 import {
   perSideToTotal,
@@ -24,8 +27,16 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
+
+const routineRepo = new SQLiteRoutineRepository();
+
+function formatKg(n: number): string {
+  const rounded = Math.round(n);
+  return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
 function workingSetsFor(logs: SetLog[], routineExerciseId: string) {
   return logs.filter(
@@ -62,10 +73,19 @@ export default function ExecuteRoutineScreen() {
   const [currentSetNumber, setCurrentSetNumber] = useState(1);
   const [weightKg, setWeightKg] = useState(0);
   const [reps, setReps] = useState(0);
-  const [routineFinished, setRoutineFinished] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [routineName, setRoutineName] = useState("");
+  const [sessionNotes, setSessionNotes] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [sessionSetLogs, setSessionSetLogs] = useState<SetLog[]>([]);
   const [showExerciseList, setShowExerciseList] = useState(false);
+  const [justMarked, setJustMarked] = useState(false);
+
+  useEffect(() => {
+    routineRepo.getById(routineId).then((r) => {
+      if (r) setRoutineName(r.name);
+    });
+  }, [routineId]);
 
   async function refreshSessionLogs(): Promise<SetLog[]> {
     const logs = await getLoggedSets();
@@ -133,8 +153,7 @@ export default function ExecuteRoutineScreen() {
       );
 
       if (allDone) {
-        await completeSession(null);
-        setRoutineFinished(true);
+        setShowSummary(true);
       } else {
         const lastIndex = session.lastRoutineExerciseId
           ? execution.steps.findIndex(
@@ -143,8 +162,8 @@ export default function ExecuteRoutineScreen() {
           : -1;
         const lastStillIncomplete =
           lastIndex !== -1 &&
-          workingSetsFor(logs, execution.steps[lastIndex].id).length <
-            execution.steps[lastIndex].targetSets;
+          workingSetsFor(logs, execution.steps[lastIndex].id).length;
+        execution.steps[lastIndex].targetSets;
 
         const resumeIndex = lastStillIncomplete
           ? lastIndex
@@ -197,13 +216,16 @@ export default function ExecuteRoutineScreen() {
       return;
     }
 
+    setJustMarked(true);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    setJustMarked(false);
+
     const allDone = execution.steps.every(
       (s) => workingSetsFor(updatedLogs, s.id).length >= s.targetSets,
     );
 
     if (allDone) {
-      await completeSession(null);
-      setRoutineFinished(true);
+      setShowSummary(true);
       return;
     }
 
@@ -223,6 +245,11 @@ export default function ExecuteRoutineScreen() {
     });
   }
 
+  async function handleSaveSummary() {
+    await completeSession(sessionNotes.trim() || null);
+    router.replace("/");
+  }
+
   if (execution.loading || !session || !initialized) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base">
@@ -231,31 +258,68 @@ export default function ExecuteRoutineScreen() {
     );
   }
 
-  if (routineFinished) {
+  if (showSummary) {
+    const workingLogs = sessionSetLogs.filter((l) => !l.isWarmup);
+    const totalSets = workingLogs.length;
+    const totalVolumeKg = workingLogs.reduce(
+      (sum, l) => sum + l.weightKg * l.reps,
+      0,
+    );
+    const durationMinutes = Math.max(
+      1,
+      Math.round((Date.now() - new Date(session.date).getTime()) / 60000),
+    );
+
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-2xl font-bold text-center">
-          ¡Rutina completada! 🎉
+      <ScrollView
+        className="flex-1 bg-bg-base px-6 pt-20"
+        contentContainerStyle={{ paddingBottom: 60 }}
+      >
+        <Text className="text-text-primary text-2xl font-sans-bold text-center">
+          ¡Sesión completada! 🎉
         </Text>
-        <Text className="text-text-secondary text-center mt-2">
-          El resumen detallado de la sesión llega en un paso más adelante.
+        <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
+          {routineName}
         </Text>
-        <Pressable
-          onPress={() => router.replace("/")}
-          className="mt-8 rounded-pill bg-accent px-6 py-3"
-        >
-          <Text className="text-text-on-accent font-semibold">
-            Volver al inicio
+
+        <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
+          <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
+            {durationMinutes} min · {execution.steps.length} ejercicios
           </Text>
-        </Pressable>
-      </View>
+          <StatRow
+            items={[
+              { value: String(totalSets), label: "sets" },
+              {
+                value: `${formatKg(totalVolumeKg)} kg`,
+                label: "volumen total",
+              },
+            ]}
+          />
+        </View>
+
+        <Text className="text-text-secondary text-sm font-sans mb-2">
+          Nota (opcional)
+        </Text>
+        <TextInput
+          value={sessionNotes}
+          onChangeText={setSessionNotes}
+          placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
+          placeholderTextColor="#9B9BA5"
+          multiline
+          numberOfLines={3}
+          className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
+          style={{ minHeight: 80, textAlignVertical: "top" }}
+        />
+
+        <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
+      </ScrollView>
     );
   }
 
   if (rest.active) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-xl font-bold mb-8">
+        <Text className="text-text-primary text-xl font-sans-bold mb-8">
           Descanso
         </Text>
         <RestTimerRing remaining={rest.remaining} total={rest.total} />
@@ -264,17 +328,19 @@ export default function ExecuteRoutineScreen() {
             onPress={() => rest.adjust(-15)}
             className="rounded-pill bg-bg-surface-alt px-5 py-3"
           >
-            <Text className="text-text-primary font-semibold">-15s</Text>
+            <Text className="text-text-primary font-sans-semibold">-15s</Text>
           </Pressable>
           <Pressable
             onPress={() => rest.adjust(15)}
             className="rounded-pill bg-bg-surface-alt px-5 py-3"
           >
-            <Text className="text-text-primary font-semibold">+15s</Text>
+            <Text className="text-text-primary font-sans-semibold">+15s</Text>
           </Pressable>
         </View>
         <Pressable onPress={rest.skip} className="mt-8">
-          <Text className="text-text-secondary underline">Saltar descanso</Text>
+          <Text className="text-text-secondary font-sans underline">
+            Saltar descanso
+          </Text>
         </Pressable>
       </View>
     );
@@ -287,7 +353,9 @@ export default function ExecuteRoutineScreen() {
           <Pressable onPress={() => setShowExerciseList(false)}>
             <Text className="text-text-secondary text-2xl">✕</Text>
           </Pressable>
-          <Text className="text-text-primary font-semibold">Ejercicios</Text>
+          <Text className="text-text-primary font-sans-semibold">
+            Ejercicios
+          </Text>
           <View style={{ width: 24 }} />
         </View>
         <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
@@ -307,11 +375,11 @@ export default function ExecuteRoutineScreen() {
                     : "border-border-subtle"
                 }`}
               >
-                <Text className="text-text-primary font-semibold">
+                <Text className="text-text-primary font-sans-semibold">
                   {s.exercise.name}
                 </Text>
                 <Text
-                  className={`text-sm mt-1 ${done ? "text-success" : "text-text-secondary"}`}
+                  className={`text-sm font-sans mt-1 ${done ? "text-success" : "text-text-secondary"}`}
                 >
                   {logged}/{s.targetSets} sets {done ? "✓" : ""}
                 </Text>
@@ -327,14 +395,14 @@ export default function ExecuteRoutineScreen() {
   if (!step) {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-lg text-center mb-6">
+        <Text className="text-text-primary text-lg font-sans text-center mb-6">
           Esta rutina no tiene ejercicios configurados.
         </Text>
         <Pressable
           onPress={() => router.replace(`/routines/${routineId}/edit`)}
           className="rounded-pill bg-accent px-6 py-3"
         >
-          <Text className="text-text-on-accent font-semibold">
+          <Text className="text-text-on-accent font-sans-semibold">
             Agregar ejercicios
           </Text>
         </Pressable>
@@ -374,24 +442,26 @@ export default function ExecuteRoutineScreen() {
           <Text className="text-text-secondary text-2xl">✕</Text>
         </Pressable>
         <Pressable onPress={() => setShowExerciseList(true)}>
-          <Text className="text-accent">
+          <Text className="text-accent font-sans">
             Ejercicio {execution.currentIndex + 1} de {execution.totalSteps} ▾
           </Text>
         </Pressable>
         <View style={{ width: 24 }} />
       </View>
 
-      <Text className="text-text-primary text-3xl font-bold">
+      <Text className="text-text-primary text-3xl font-sans-bold">
         {step.exercise.name}
       </Text>
-      <Text className="text-text-secondary mt-1">
+      <Text className="text-text-secondary font-sans mt-1">
         grupo: {step.exercise.muscleGroup}
       </Text>
 
       {warmupsForCurrentStep.length > 0 && (
         <View className="mt-4">
-          <Text className="text-text-secondary text-xs">Calentamiento</Text>
-          <Text className="text-text-secondary text-sm mt-1">
+          <Text className="text-text-secondary text-xs font-sans">
+            Calentamiento
+          </Text>
+          <Text className="text-text-secondary text-sm font-sans mt-1">
             {warmupsForCurrentStep
               .map(
                 (w) => `${kgToDisplayUnit(w.weightKg, step)}${unit}×${w.reps}`,
@@ -402,13 +472,13 @@ export default function ExecuteRoutineScreen() {
       )}
 
       <Pressable onPress={handleAddWarmup} className="mt-3">
-        <Text className="text-text-secondary text-sm underline">
+        <Text className="text-text-secondary text-sm font-sans underline">
           + Agregar calentamiento ({totalInUnit}
           {unit} × {reps})
         </Text>
       </Pressable>
 
-      <Text className="text-text-secondary mt-6">
+      <Text className="text-text-secondary font-sans mt-6">
         Set {currentSetNumber} de {step.targetSets} · objetivo {step.repMin}-
         {step.repMax} reps
       </Text>
@@ -435,14 +505,14 @@ export default function ExecuteRoutineScreen() {
         <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />
       </View>
 
-      <Pressable
-        onPress={handleMarkSet}
-        className="mt-8 self-center rounded-pill bg-accent px-8 py-4"
-      >
-        <Text className="text-text-on-accent font-semibold text-base">
-          ✓ Marcar set
-        </Text>
-      </Pressable>
+      <View className="mt-8 self-center">
+        <BrutalistButton
+          label={justMarked ? "✓ Listo" : "Marcar set"}
+          state={justMarked ? "success" : "default"}
+          disabled={justMarked}
+          onPress={handleMarkSet}
+        />
+      </View>
 
       <View className="flex-row justify-center gap-2 mt-6">
         {dotsData.map((d) => (

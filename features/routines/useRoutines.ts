@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
+import { SQLiteExerciseRepository } from "../../data/repositories/SQLiteExerciseRepository";
 import { SQLiteRoutineRepository } from "../../data/repositories/SQLiteRoutineRepository";
-import type { Routine } from "../../domain/entities";
+import type { MuscleGroup, Routine } from "../../domain/entities";
 import { getDayLabel, sortableDay } from "../../shared/constants/days";
+import {
+  getDominantCategory,
+  type MuscleCategory,
+} from "../../shared/constants/muscleCategories";
 
 const repo = new SQLiteRoutineRepository();
+const exerciseRepo = new SQLiteExerciseRepository();
 
 export type RoutineWithMeta = Routine & {
   exerciseCount: number;
+  totalSets: number;
   dayLabel: string;
+  category: MuscleCategory | null;
 };
 
 export function useRoutines() {
@@ -16,15 +24,25 @@ export function useRoutines() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const all = await repo.getAll();
+    const [all, catalog] = await Promise.all([
+      repo.getAll(),
+      exerciseRepo.getAll(),
+    ]);
+    const muscleById = new Map(catalog.map((e) => [e.id, e.muscleGroup]));
 
     const withMeta = await Promise.all(
       all.map(async (r) => {
         const exercises = await repo.getExercises(r.id);
+        const muscleGroups = exercises
+          .map((e) => muscleById.get(e.exerciseId))
+          .filter((mg): mg is MuscleGroup => Boolean(mg));
+
         return {
           ...r,
           exerciseCount: exercises.length,
+          totalSets: exercises.reduce((sum, e) => sum + e.targetSets, 0),
           dayLabel: getDayLabel(r.dayOfWeek),
+          category: getDominantCategory(muscleGroups),
         };
       }),
     );

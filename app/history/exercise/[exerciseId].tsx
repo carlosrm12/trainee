@@ -1,6 +1,6 @@
 import { useExerciseProgress } from "@/features/history/useExerciseProgress";
 import { useSettings } from "@/features/profile/useSettings";
-import { formatSessionDate } from "@/shared/utils/formatDate";
+import { formatShortDate } from "@/shared/utils/formatDate";
 import { formatWeight } from "@/shared/utils/weightUnit";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -35,42 +35,45 @@ export default function ExerciseProgressScreen() {
         <Text className="text-text-secondary text-2xl">‹</Text>
       </Pressable>
 
-      <Text className="text-text-primary text-2xl font-bold mb-1">
+      <Text className="text-text-primary text-2xl font-sans-bold mb-8">
         {exerciseName}
       </Text>
-      <Text className="text-text-secondary mb-8">
-        {sessionGroups.length} sesión{sessionGroups.length === 1 ? "" : "es"}{" "}
-        registrada
-        {sessionGroups.length === 1 ? "" : "s"}
+
+      {/* Gráfica de volumen — Fase 2 (victory-native), fuera de este roadmap */}
+
+      <Text className="text-text-secondary text-sm font-sans mb-2">
+        Historial de sets
       </Text>
 
       {sessionGroups.length === 0 && (
-        <Text className="text-text-secondary">
+        <Text className="text-text-secondary font-sans">
           Todavía no hay sesiones completadas con este ejercicio.
         </Text>
       )}
 
-      {sessionGroups.map((g) => (
-        <View
-          key={g.sessionId}
-          className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
-        >
-          <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-text-primary font-semibold">
-              {formatSessionDate(g.dateIso)}
-            </Text>
-            <Text className="text-accent font-semibold">
-              {formatWeight(g.maxWeightKg, weightUnit)} máx
-            </Text>
-          </View>
-          {g.sets.map((s) => (
-            <Text key={s.id} className="text-text-secondary">
-              Set {s.setNumber}: {formatWeight(s.weightKg, weightUnit)} ×{" "}
-              {s.reps} reps
-            </Text>
+      {sessionGroups.length > 0 && (
+        <View className="rounded-card border border-border-subtle bg-bg-surface px-4">
+          {sessionGroups.map((g, index) => (
+            <View
+              key={g.sessionId}
+              className={`py-3 flex-row items-center justify-between ${
+                index > 0 ? "border-t border-border-subtle" : ""
+              }`}
+            >
+              <Text className="text-text-secondary text-sm font-sans">
+                {formatShortDate(g.dateIso)}
+              </Text>
+              <Text className="text-text-primary text-sm font-sans flex-1 text-right ml-3">
+                {g.sets
+                  .map(
+                    (s) => `${formatWeight(s.weightKg, weightUnit)}×${s.reps}`,
+                  )
+                  .join("  ")}
+              </Text>
+            </View>
           ))}
         </View>
-      ))}
+      )}
     </ScrollView>
   );
 }

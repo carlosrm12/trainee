@@ -1,17 +1,18 @@
 import { useRoutines } from "@/features/routines/useRoutines";
+import { BrutalistButton } from "@/shared/components/BrutalistButton";
+import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
+import { RoutineCard } from "@/shared/components/RoutineCard";
+import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+
+const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 
 export default function RoutinesScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
+  const [selectedFilter, setSelectedFilter] = useState("Todas");
 
   useFocusEffect(
     useCallback(() => {
@@ -27,51 +28,59 @@ export default function RoutinesScreen() {
     );
   }
 
+  const todayDow = new Date().getDay();
+  const filteredRoutines = routines.filter(
+    (r) =>
+      selectedFilter === "Todas" ||
+      (r.category ? MUSCLE_CATEGORY_LABEL[r.category] : null) ===
+        selectedFilter,
+  );
+
   return (
-    <ScrollView
-      className="flex-1 bg-bg-base px-4 pt-16"
-      contentContainerStyle={{ paddingBottom: 100 }}
-    >
-      <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-text-primary text-2xl font-bold">Rutinas</Text>
-        <Pressable onPress={() => router.push("/routines/new")}>
-          <Text className="text-accent font-semibold">+ Nueva</Text>
-        </Pressable>
-      </View>
-
-      {routines.length === 0 && (
-        <Text className="text-text-secondary">
-          Todavía no tienes rutinas. Crea la primera.
+    <View className="flex-1 bg-bg-base">
+      <ScrollView
+        className="flex-1 px-4 pt-16"
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <Text className="text-text-primary text-2xl font-sans-bold mb-4">
+          Rutinas
         </Text>
-      )}
 
-      {routines.map((r) => (
-        <View
-          key={r.id}
-          className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3"
-        >
-          <Text className="text-text-primary text-lg font-semibold">
-            {r.name}
-          </Text>
-          <Text className="text-text-secondary text-sm mt-1">
-            {r.dayLabel} · {r.exerciseCount} ejercicios
-          </Text>
-          <View className="flex-row gap-3 mt-3">
-            <Pressable
-              onPress={() => router.push(`/routines/${r.id}/edit`)}
-              className="rounded-pill bg-bg-surface-alt border border-border-subtle px-4 py-2"
-            >
-              <Text className="text-text-primary font-semibold">Editar</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push(`/execute/${r.id}`)}
-              className="rounded-pill bg-accent px-4 py-2"
-            >
-              <Text className="text-text-on-accent font-semibold">Empezar</Text>
-            </Pressable>
-          </View>
+        <View className="mb-6">
+          <FilterChipOutline
+            options={FILTER_OPTIONS}
+            selected={selectedFilter}
+            onSelect={setSelectedFilter}
+          />
         </View>
-      ))}
-    </ScrollView>
+
+        {filteredRoutines.length === 0 && (
+          <Text className="text-text-secondary font-sans">
+            {routines.length === 0
+              ? "Todavía no tienes rutinas. Crea la primera."
+              : "No hay rutinas para este filtro."}
+          </Text>
+        )}
+
+        {filteredRoutines.map((r) => (
+          <RoutineCard
+            key={r.id}
+            name={r.name}
+            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+            isToday={r.dayOfWeek === todayDow}
+            onPress={() => router.push(`/routines/${r.id}/edit`)}
+            onStart={() => router.push(`/execute/${r.id}`)}
+          />
+        ))}
+      </ScrollView>
+
+      <View className="absolute bottom-6 right-6">
+        <BrutalistButton
+          variant="fab"
+          label="Nueva rutina"
+          onPress={() => router.push("/routines/new")}
+        />
+      </View>
+    </View>
   );
 }

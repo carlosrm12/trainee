@@ -15,8 +15,10 @@ export function RestTimerRing({
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = total > 0 ? remaining / total : 0;
+  const isFinished = remaining <= 0;
+  const progress = isFinished ? 1 : total > 0 ? remaining / total : 0;
   const strokeDashoffset = circumference * (1 - progress);
+  const ringColor = isFinished ? "#FFFFFF" : "#F5C518";
 
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
@@ -44,7 +46,7 @@ export function RestTimerRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#F5C518"
+          stroke={ringColor}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -55,7 +57,9 @@ export function RestTimerRing({
         />
       </Svg>
       <View style={{ position: "absolute" }}>
-        <Text className="text-text-primary text-4xl font-bold">{label}</Text>
+        <Text className="text-text-primary text-4xl font-sans-bold">
+          {label}
+        </Text>
       </View>
     </View>
   );
