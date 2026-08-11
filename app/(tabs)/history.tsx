@@ -1,6 +1,7 @@
 import { useSessionHistory } from "@/features/history/useSessionHistory";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { SessionListItem } from "@/shared/components/SessionListItem";
+import { StaggerItem } from "@/shared/components/StaggerItem";
 import { StatRow } from "@/shared/components/StatRow";
 import { formatSessionDate } from "@/shared/utils/formatDate";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -130,18 +131,19 @@ export default function HistoryScreen() {
           </Text>
           <View className="rounded-card border border-border-subtle bg-bg-surface px-4">
             {olderSessions.map((s, index) => (
-              <View
-                key={s.id}
-                className={index > 0 ? "border-t border-border-subtle" : ""}
-              >
-                <SessionListItem
-                  routineName={s.routineName}
-                  dateLabel={formatSessionDate(s.date)}
-                  durationMinutes={s.durationMinutes}
-                  totalSets={s.totalSets}
-                  onPress={() => router.push(`/history/${s.id}`)}
-                />
-              </View>
+              <StaggerItem key={s.id} index={index}>
+                <View
+                  className={index > 0 ? "border-t border-border-subtle" : ""}
+                >
+                  <SessionListItem
+                    routineName={s.routineName}
+                    dateLabel={formatSessionDate(s.date)}
+                    durationMinutes={s.durationMinutes}
+                    totalSets={s.totalSets}
+                    onPress={() => router.push(`/history/${s.id}`)}
+                  />
+                </View>
+              </StaggerItem>
             ))}
           </View>
         </>
