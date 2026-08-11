@@ -2,6 +2,7 @@ import { useRoutines } from "@/features/routines/useRoutines";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { RoutineCard } from "@/shared/components/RoutineCard";
+import { StaggerItem } from "@/shared/components/StaggerItem";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -62,15 +63,16 @@ export default function RoutinesScreen() {
           </Text>
         )}
 
-        {filteredRoutines.map((r) => (
-          <RoutineCard
-            key={r.id}
-            name={r.name}
-            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-            isToday={r.dayOfWeek === todayDow}
-            onPress={() => router.push(`/routines/${r.id}/edit`)}
-            onStart={() => router.push(`/execute/${r.id}`)}
-          />
+        {filteredRoutines.map((r, index) => (
+          <StaggerItem key={r.id} index={index}>
+            <RoutineCard
+              name={r.name}
+              meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+              isToday={r.dayOfWeek === todayDow}
+              onPress={() => router.push(`/routines/${r.id}/edit`)}
+              onStart={() => router.push(`/execute/${r.id}`)}
+            />
+          </StaggerItem>
         ))}
       </ScrollView>
 
