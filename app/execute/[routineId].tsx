@@ -21,7 +21,7 @@ import {
   lbToKg,
 } from "@/shared/utils/weightUnit";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -87,6 +87,13 @@ export default function ExecuteRoutineScreen() {
   const [sessionSetLogs, setSessionSetLogs] = useState<SetLog[]>([]);
   const [showExerciseList, setShowExerciseList] = useState(false);
   const [justMarked, setJustMarked] = useState(false);
+  // Datos del set recién marcado, pendientes de aplicar cuando termine la
+  // animación de éxito del botón (ver handleSuccessAnimationEnd).
+  const pendingAdvanceRef = useRef<{
+    step: ExecutionStep;
+    setNumber: number;
+    updatedLogs: SetLog[];
+  } | null>(null);
 
   useEffect(() => {
     routineRepo.getById(routineId).then((r) => {
@@ -223,9 +230,25 @@ export default function ExecuteRoutineScreen() {
       return;
     }
 
+    // No avanzamos todavía: guardamos lo necesario y disparamos el pop de
+    // éxito del botón. El avance real (descanso o resumen) pasa recién en
+    // handleSuccessAnimationEnd, cuando esa animación termina de verdad —
+    // así nunca se corta a mitad de camino ni se adelanta a lo visual.
+    pendingAdvanceRef.current = {
+      step,
+      setNumber: currentSetNumber,
+      updatedLogs,
+    };
     setJustMarked(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  function handleSuccessAnimationEnd() {
     setJustMarked(false);
+
+    const pending = pendingAdvanceRef.current;
+    pendingAdvanceRef.current = null;
+    if (!pending) return;
+    const { step, setNumber, updatedLogs } = pending;
 
     const allDone = execution.steps.every(
       (s) => workingSetsFor(updatedLogs, s.id).length >= s.targetSets,
@@ -236,11 +259,11 @@ export default function ExecuteRoutineScreen() {
       return;
     }
 
-    const isLastSetOfExercise = currentSetNumber >= step.targetSets;
+    const isLastSetOfExercise = setNumber >= step.targetSets;
 
     rest.start(step.restSeconds, () => {
       if (!isLastSetOfExercise) {
-        loadSetValues(step, currentSetNumber + 1, updatedLogs);
+        loadSetValues(step, setNumber + 1, updatedLogs);
         return;
       }
       const nextIncompleteIndex = execution.steps.findIndex(
@@ -517,6 +540,7 @@ export default function ExecuteRoutineScreen() {
           state={justMarked ? "success" : "default"}
           disabled={justMarked}
           onPress={handleMarkSet}
+          onSuccessAnimationEnd={handleSuccessAnimationEnd}
         />
       </View>
 
