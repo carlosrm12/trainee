@@ -20,7 +20,7 @@ import {
   kgToLb,
   lbToKg,
 } from "@/shared/utils/weightUnit";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -282,9 +282,12 @@ export default function ExecuteRoutineScreen() {
 
   if (execution.loading || !session || !initialized) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base">
-        <ActivityIndicator color="#F5C518" />
-      </View>
+      <>
+        <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+        <View className="flex-1 items-center justify-center bg-bg-base">
+          <ActivityIndicator color="#F5C518" />
+        </View>
+      </>
     );
   }
 
@@ -301,141 +304,153 @@ export default function ExecuteRoutineScreen() {
     );
 
     return (
-      <ScrollView
-        className="flex-1 bg-bg-base px-6 pt-20"
-        contentContainerStyle={{ paddingBottom: 60 }}
-      >
-        <Text className="text-text-primary text-2xl font-sans-bold text-center">
-          ¡Sesión completada! 🎉
-        </Text>
-        <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
-          {routineName}
-        </Text>
-
-        <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
-          <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
-            {durationMinutes} min · {execution.steps.length} ejercicios
+      <>
+        <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+        <ScrollView
+          className="flex-1 bg-bg-base px-6 pt-20"
+          contentContainerStyle={{ paddingBottom: 60 }}
+        >
+          <Text className="text-text-primary text-2xl font-sans-bold text-center">
+            ¡Sesión completada! 🎉
           </Text>
-          <StatRow
-            items={[
-              { value: String(totalSets), label: "sets" },
-              {
-                value: `${formatKg(totalVolumeKg)} kg`,
-                label: "volumen total",
-              },
-            ]}
+          <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
+            {routineName}
+          </Text>
+
+          <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
+            <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
+              {durationMinutes} min · {execution.steps.length} ejercicios
+            </Text>
+            <StatRow
+              items={[
+                { value: String(totalSets), label: "sets" },
+                {
+                  value: `${formatKg(totalVolumeKg)} kg`,
+                  label: "volumen total",
+                },
+              ]}
+            />
+          </View>
+
+          <Text className="text-text-secondary text-sm font-sans mb-2">
+            Nota (opcional)
+          </Text>
+          <TextInput
+            value={sessionNotes}
+            onChangeText={setSessionNotes}
+            placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
+            placeholderTextColor="#9B9BA5"
+            multiline
+            numberOfLines={3}
+            className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
+            style={{ minHeight: 80, textAlignVertical: "top" }}
           />
-        </View>
 
-        <Text className="text-text-secondary text-sm font-sans mb-2">
-          Nota (opcional)
-        </Text>
-        <TextInput
-          value={sessionNotes}
-          onChangeText={setSessionNotes}
-          placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
-          placeholderTextColor="#9B9BA5"
-          multiline
-          numberOfLines={3}
-          className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
-          style={{ minHeight: 80, textAlignVertical: "top" }}
-        />
-
-        <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
-      </ScrollView>
+          <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
+        </ScrollView>
+      </>
     );
   }
 
   if (rest.active) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-xl font-sans-bold mb-8">
-          Descanso
-        </Text>
-        <RestTimerRing
-          remaining={rest.remaining}
-          total={rest.total}
-          onSkip={rest.skip}
-        />
-        <View className="flex-row gap-4 mt-10">
-          <Pressable
-            onPress={() => rest.adjust(-15)}
-            className="rounded-pill bg-bg-surface-alt px-5 py-3"
-          >
-            <Text className="text-text-primary font-sans-semibold">-15s</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => rest.adjust(15)}
-            className="rounded-pill bg-bg-surface-alt px-5 py-3"
-          >
-            <Text className="text-text-primary font-sans-semibold">+15s</Text>
-          </Pressable>
+      <>
+        <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+        <View className="flex-1 items-center justify-center bg-bg-base px-6">
+          <Text className="text-text-primary text-xl font-sans-bold mb-8">
+            Descanso
+          </Text>
+          <RestTimerRing
+            remaining={rest.remaining}
+            total={rest.total}
+            onSkip={rest.skip}
+          />
+          <View className="flex-row gap-4 mt-10">
+            <Pressable
+              onPress={() => rest.adjust(-15)}
+              className="rounded-pill bg-bg-surface-alt px-5 py-3"
+            >
+              <Text className="text-text-primary font-sans-semibold">-15s</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => rest.adjust(15)}
+              className="rounded-pill bg-bg-surface-alt px-5 py-3"
+            >
+              <Text className="text-text-primary font-sans-semibold">+15s</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
 
   if (showExerciseList) {
     return (
-      <View className="flex-1 bg-bg-base px-6 pt-16">
-        <View className="flex-row items-center justify-between mb-6">
-          <Pressable onPress={() => setShowExerciseList(false)}>
-            <Text className="text-text-secondary text-2xl">✕</Text>
-          </Pressable>
-          <Text className="text-text-primary font-sans-semibold">
-            Ejercicios
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-          {execution.steps.map((s, i) => {
-            const logged = workingSetsFor(sessionSetLogs, s.id).length;
-            const done = logged >= s.targetSets;
-            return (
-              <Pressable
-                key={s.id}
-                onPress={() => {
-                  jumpToExercise(i, sessionSetLogs);
-                  setShowExerciseList(false);
-                }}
-                className={`rounded-card border p-4 mb-3 bg-bg-surface ${
-                  i === execution.currentIndex
-                    ? "border-accent"
-                    : "border-border-subtle"
-                }`}
-              >
-                <Text className="text-text-primary font-sans-semibold">
-                  {s.exercise.name}
-                </Text>
-                <Text
-                  className={`text-sm font-sans mt-1 ${done ? "text-success" : "text-text-secondary"}`}
+      <>
+        <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+        <View className="flex-1 bg-bg-base px-6 pt-16">
+          <View className="flex-row items-center justify-between mb-6">
+            <Pressable onPress={() => setShowExerciseList(false)}>
+              <Text className="text-text-secondary text-2xl">✕</Text>
+            </Pressable>
+            <Text className="text-text-primary font-sans-semibold">
+              Ejercicios
+            </Text>
+            <View style={{ width: 24 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+            {execution.steps.map((s, i) => {
+              const logged = workingSetsFor(sessionSetLogs, s.id).length;
+              const done = logged >= s.targetSets;
+              return (
+                <Pressable
+                  key={s.id}
+                  onPress={() => {
+                    jumpToExercise(i, sessionSetLogs);
+                    setShowExerciseList(false);
+                  }}
+                  className={`rounded-card border p-4 mb-3 bg-bg-surface ${
+                    i === execution.currentIndex
+                      ? "border-accent"
+                      : "border-border-subtle"
+                  }`}
                 >
-                  {logged}/{s.targetSets} sets {done ? "✓" : ""}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
+                  <Text className="text-text-primary font-sans-semibold">
+                    {s.exercise.name}
+                  </Text>
+                  <Text
+                    className={`text-sm font-sans mt-1 ${done ? "text-success" : "text-text-secondary"}`}
+                  >
+                    {logged}/{s.targetSets} sets {done ? "✓" : ""}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </>
     );
   }
 
   const step = execution.currentStep;
   if (!step) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base px-6">
-        <Text className="text-text-primary text-lg font-sans text-center mb-6">
-          Esta rutina no tiene ejercicios configurados.
-        </Text>
-        <Pressable
-          onPress={() => router.replace(`/routines/${routineId}/edit`)}
-          className="rounded-pill bg-accent px-6 py-3"
-        >
-          <Text className="text-text-on-accent font-sans-semibold">
-            Agregar ejercicios
+      <>
+        <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+        <View className="flex-1 items-center justify-center bg-bg-base px-6">
+          <Text className="text-text-primary text-lg font-sans text-center mb-6">
+            Esta rutina no tiene ejercicios configurados.
           </Text>
-        </Pressable>
-      </View>
+          <Pressable
+            onPress={() => router.replace(`/routines/${routineId}/edit`)}
+            className="rounded-pill bg-accent px-6 py-3"
+          >
+            <Text className="text-text-on-accent font-sans-semibold">
+              Agregar ejercicios
+            </Text>
+          </Pressable>
+        </View>
+      </>
     );
   }
 
@@ -465,99 +480,103 @@ export default function ExecuteRoutineScreen() {
   }
 
   return (
-    <View className="flex-1 bg-bg-base px-6 pt-16">
-      <View className="flex-row items-center justify-between mb-8">
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-text-secondary text-2xl">✕</Text>
-        </Pressable>
-        <Pressable onPress={() => setShowExerciseList(true)}>
-          <Text className="text-accent font-sans">
-            Ejercicio {execution.currentIndex + 1} de {execution.totalSteps} ▾
-          </Text>
-        </Pressable>
-        <View style={{ width: 24 }} />
-      </View>
-
-      <Text className="text-text-primary text-3xl font-sans-bold">
-        {step.exercise.name}
-      </Text>
-      <Text className="text-text-secondary font-sans mt-1">
-        grupo: {step.exercise.muscleGroup}
-      </Text>
-
-      {warmupsForCurrentStep.length > 0 && (
-        <View className="mt-4">
-          <Text className="text-text-secondary text-xs font-sans">
-            Calentamiento
-          </Text>
-          <Text className="text-text-secondary text-sm font-sans mt-1">
-            {warmupsForCurrentStep
-              .map(
-                (w) => `${kgToDisplayUnit(w.weightKg, step)}${unit}×${w.reps}`,
-              )
-              .join("  ·  ")}
-          </Text>
-        </View>
-      )}
-
-      <Pressable onPress={handleAddWarmup} className="mt-3">
-        <Text className="text-text-secondary text-sm font-sans underline">
-          + Agregar calentamiento ({totalInUnit}
-          {unit} × {reps})
-        </Text>
-      </Pressable>
-
-      <Text className="text-text-secondary font-sans mt-6">
-        Set {currentSetNumber} de {step.targetSets} · objetivo {step.repMin}-
-        {step.repMax} reps
-      </Text>
-
-      <View className="flex-row gap-4 mt-4">
-        {step.exercise.weightInputMode === "per_side" ? (
-          <SetStepper
-            label="Peso por lado"
-            value={perSideInUnit}
-            unit={unit}
-            step={weightStep}
-            helperText={`Total: ${totalInUnit}${unit}`}
-            onChange={handleWeightChange}
-          />
-        ) : (
-          <SetStepper
-            label="Peso"
-            value={totalInUnit}
-            unit={unit}
-            step={weightStep}
-            onChange={handleWeightChange}
-          />
-        )}
-        <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />
-      </View>
-
-      <View className="mt-8 self-center">
-        <BrutalistButton
-          label={justMarked ? "✓ Listo" : "Marcar set"}
-          state={justMarked ? "success" : "default"}
-          disabled={justMarked}
-          onPress={handleMarkSet}
-          onSuccessAnimationEnd={handleSuccessAnimationEnd}
-        />
-      </View>
-
-      <View className="flex-row justify-center gap-2 mt-6">
-        {dotsData.map((d) => (
-          <Pressable
-            key={d.setNum}
-            onPress={() => loadSetValues(step, d.setNum, sessionSetLogs)}
-          >
-            <View
-              className={`w-4 h-4 rounded-full ${d.done ? "bg-success" : "bg-bg-surface-alt"} ${
-                d.isCurrent ? "border-2 border-accent" : ""
-              }`}
-            />
+    <>
+      <Stack.Screen options={{ animation: "slide_from_bottom" }} />
+      <View className="flex-1 bg-bg-base px-6 pt-16">
+        <View className="flex-row items-center justify-between mb-8">
+          <Pressable onPress={() => router.back()}>
+            <Text className="text-text-secondary text-2xl">✕</Text>
           </Pressable>
-        ))}
+          <Pressable onPress={() => setShowExerciseList(true)}>
+            <Text className="text-accent font-sans">
+              Ejercicio {execution.currentIndex + 1} de {execution.totalSteps} ▾
+            </Text>
+          </Pressable>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <Text className="text-text-primary text-3xl font-sans-bold">
+          {step.exercise.name}
+        </Text>
+        <Text className="text-text-secondary font-sans mt-1">
+          grupo: {step.exercise.muscleGroup}
+        </Text>
+
+        {warmupsForCurrentStep.length > 0 && (
+          <View className="mt-4">
+            <Text className="text-text-secondary text-xs font-sans">
+              Calentamiento
+            </Text>
+            <Text className="text-text-secondary text-sm font-sans mt-1">
+              {warmupsForCurrentStep
+                .map(
+                  (w) =>
+                    `${kgToDisplayUnit(w.weightKg, step)}${unit}×${w.reps}`,
+                )
+                .join("  ·  ")}
+            </Text>
+          </View>
+        )}
+
+        <Pressable onPress={handleAddWarmup} className="mt-3">
+          <Text className="text-text-secondary text-sm font-sans underline">
+            + Agregar calentamiento ({totalInUnit}
+            {unit} × {reps})
+          </Text>
+        </Pressable>
+
+        <Text className="text-text-secondary font-sans mt-6">
+          Set {currentSetNumber} de {step.targetSets} · objetivo {step.repMin}-
+          {step.repMax} reps
+        </Text>
+
+        <View className="flex-row gap-4 mt-4">
+          {step.exercise.weightInputMode === "per_side" ? (
+            <SetStepper
+              label="Peso por lado"
+              value={perSideInUnit}
+              unit={unit}
+              step={weightStep}
+              helperText={`Total: ${totalInUnit}${unit}`}
+              onChange={handleWeightChange}
+            />
+          ) : (
+            <SetStepper
+              label="Peso"
+              value={totalInUnit}
+              unit={unit}
+              step={weightStep}
+              onChange={handleWeightChange}
+            />
+          )}
+          <SetStepper label="Reps" value={reps} step={1} onChange={setReps} />
+        </View>
+
+        <View className="mt-8 self-center">
+          <BrutalistButton
+            label={justMarked ? "✓ Listo" : "Marcar set"}
+            state={justMarked ? "success" : "default"}
+            disabled={justMarked}
+            onPress={handleMarkSet}
+            onSuccessAnimationEnd={handleSuccessAnimationEnd}
+          />
+        </View>
+
+        <View className="flex-row justify-center gap-2 mt-6">
+          {dotsData.map((d) => (
+            <Pressable
+              key={d.setNum}
+              onPress={() => loadSetValues(step, d.setNum, sessionSetLogs)}
+            >
+              <View
+                className={`w-4 h-4 rounded-full ${d.done ? "bg-success" : "bg-bg-surface-alt"} ${
+                  d.isCurrent ? "border-2 border-accent" : ""
+                }`}
+              />
+            </Pressable>
+          ))}
+        </View>
       </View>
-    </View>
+    </>
   );
 }
