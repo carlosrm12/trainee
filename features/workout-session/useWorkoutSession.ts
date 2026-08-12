@@ -4,13 +4,18 @@ import type { SetLog, WorkoutSession } from "../../domain/entities";
 
 const sessionRepo = new SQLiteWorkoutSessionRepository();
 
-export function useWorkoutSession(routineId: string) {
+export function useWorkoutSession(routineId: string | undefined) {
   const [session, setSession] = useState<WorkoutSession | null>(null);
-  const started = useRef(false);
+  // Guarda el routineId con el que ya arrancamos sesión, no un boolean.
+  // Con un boolean simple, si el primer render llega con routineId vacío
+  // (puede pasar según el timing de useLocalSearchParams), el guard
+  // bloqueaba para siempre cualquier reintento con el id real.
+  const startedForRoutineId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    if (!routineId) return;
+    if (startedForRoutineId.current === routineId) return;
+    startedForRoutineId.current = routineId;
 
     (async () => {
       const active = await sessionRepo.getActive();

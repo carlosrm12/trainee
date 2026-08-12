@@ -1,20 +1,50 @@
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Haptics from "expo-haptics";
-import * as Notifications from "expo-notifications";
+import type * as NotificationsType from "expo-notifications";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 
 const CHANNEL_ID = "rest-timer";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Expo Go (SDK 53+) bloquea expo-notifications en Android apenas se
+// importa el módulo — no hace falta ni llamar a nada, con el `import`
+// alcanza para tirar el error "was removed from Expo Go". El problema es
+// que expo-router importa TODAS las pantallas al arrancar para armar el
+// árbol de rutas, así que ese import roto tumbaba el arranque entero de
+// la app, aunque nunca se llegara a usar una notificación.
+//
+// Fix: nada de import estático de expo-notifications. Se carga con
+// dynamic import(), perezoso, solo la primera vez que hace falta, y solo
+// fuera de Expo Go. Adentro de Expo Go el timer sigue funcionando igual
+// (cuenta regresiva + haptics) pero sin notificación de sistema — para
+// eso hace falta un development build (ver https://expo.fyi/dev-client).
+const isExpoGo =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+let notificationsModulePromise: Promise<typeof NotificationsType> | null = null;
+
+function getNotifications(): Promise<typeof NotificationsType> | null {
+  if (isExpoGo) return null;
+  if (!notificationsModulePromise) {
+    notificationsModulePromise = import("expo-notifications").then((mod) => {
+      mod.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowBanner: true,
+          shouldShowList: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        }),
+      });
+      return mod;
+    });
+  }
+  return notificationsModulePromise;
+}
 
 async function ensureNotificationSetup() {
+  const Notifications = await getNotifications();
+  if (!Notifications) return;
+
   const current = await Notifications.getPermissionsAsync();
   if (current.status !== "granted") {
     await Notifications.requestPermissionsAsync();
@@ -78,16 +108,21 @@ export function useRestTimer(options: UseRestTimerOptions = {}) {
   }, []);
 
   const cancelNotification = useCallback(async () => {
-    if (notificationIdRef.current) {
+    if (!notificationIdRef.current) return;
+    const Notifications = await getNotifications();
+    if (Notifications) {
       await Notifications.cancelScheduledNotificationAsync(
         notificationIdRef.current,
       );
-      notificationIdRef.current = null;
     }
+    notificationIdRef.current = null;
   }, []);
 
   const scheduleNotification = useCallback(async (secondsFromNow: number) => {
     if (!notificationsEnabledRef.current) return;
+    const Notifications = await getNotifications();
+    if (!Notifications) return;
+
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: "Descanso terminado 💪",
