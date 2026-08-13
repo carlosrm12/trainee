@@ -317,6 +317,15 @@ export default function ExecuteRoutineScreen() {
             {routineName}
           </Text>
 
+          <Pressable
+            onPress={() => setShowSummary(false)}
+            className="self-center mb-6"
+          >
+            <Text className="text-accent font-sans text-sm underline">
+              ‹ Revisar o corregir un set
+            </Text>
+          </Pressable>
+
           <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
             <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
               {durationMinutes} min · {execution.steps.length} ejercicios
@@ -481,6 +490,10 @@ export default function ExecuteRoutineScreen() {
     setWeightKg(displayUnitToKg(newTotalInUnit, step!));
   }
 
+  const allExercisesDone = execution.steps.every(
+    (s) => workingSetsFor(sessionSetLogs, s.id).length >= s.targetSets,
+  );
+
   return (
     <>
       <Stack.Screen options={{ animation: "slide_from_bottom" }} />
@@ -496,6 +509,17 @@ export default function ExecuteRoutineScreen() {
           </Pressable>
           <View style={{ width: 24 }} />
         </View>
+
+        {allExercisesDone && (
+          <Pressable
+            onPress={() => setShowSummary(true)}
+            className="self-center mb-4"
+          >
+            <Text className="text-success font-sans text-sm underline">
+              Ver resumen ✓
+            </Text>
+          </Pressable>
+        )}
 
         <Text className="text-text-primary text-3xl font-sans-bold">
           {step.exercise.name}
