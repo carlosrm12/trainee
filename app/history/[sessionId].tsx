@@ -20,6 +20,7 @@ export default function SessionDetailScreen() {
     loading,
     routineName,
     dateIso,
+    notes,
     groups,
     totalVolumeKg,
     totalSets,
@@ -94,6 +95,15 @@ export default function SessionDetailScreen() {
           </Text>
         </View>
       </View>
+
+      {notes ? (
+        <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-8">
+          <Text className="text-text-secondary text-xs font-sans mb-1">
+            Nota
+          </Text>
+          <Text className="text-text-primary font-sans">{notes}</Text>
+        </View>
+      ) : null}
 
       {groups.map((g) => (
         <View key={g.routineExerciseId} className="mb-5">

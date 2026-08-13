@@ -20,6 +20,7 @@ export function useSessionDetail(sessionId: string) {
   const [notFound, setNotFound] = useState(false);
   const [routineName, setRoutineName] = useState("");
   const [dateIso, setDateIso] = useState("");
+  const [notes, setNotes] = useState<string | null>(null);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [totalVolumeKg, setTotalVolumeKg] = useState(0);
   const [totalSets, setTotalSets] = useState(0);
@@ -66,6 +67,7 @@ export function useSessionDetail(sessionId: string) {
 
     setRoutineName(routine?.name ?? "Rutina eliminada");
     setDateIso(session.date);
+    setNotes(session.notes);
     setGroups(orderedGroups);
 
     const workingSets = setLogs.filter((s) => !s.isWarmup);
@@ -88,6 +90,7 @@ export function useSessionDetail(sessionId: string) {
     loading,
     routineName,
     dateIso,
+    notes,
     groups,
     totalVolumeKg,
     totalSets,
