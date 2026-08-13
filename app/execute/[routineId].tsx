@@ -327,6 +327,8 @@ export default function ExecuteRoutineScreen() {
                 {
                   value: `${formatKg(totalVolumeKg)} kg`,
                   label: "volumen total",
+                  countUpTo: totalVolumeKg,
+                  countUpFormatter: (n) => `${formatKg(n)} kg`,
                 },
               ]}
             />
