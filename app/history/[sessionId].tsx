@@ -18,6 +18,7 @@ export default function SessionDetailScreen() {
   const router = useRouter();
   const {
     loading,
+    notFound,
     routineName,
     dateIso,
     notes,
@@ -52,6 +53,21 @@ export default function SessionDetailScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-bg-base">
         <ActivityIndicator color="#F5C518" />
+      </View>
+    );
+  }
+  if (notFound) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg-base px-6">
+        <Text className="text-text-primary text-lg font-sans text-center mb-6">
+          Esta sesión ya no existe.
+        </Text>
+        <Pressable
+          onPress={() => router.back()}
+          className="rounded-pill bg-accent px-6 py-3"
+        >
+          <Text className="text-text-on-accent font-sans-semibold">Volver</Text>
+        </Pressable>
       </View>
     );
   }
