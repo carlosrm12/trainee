@@ -22,7 +22,7 @@ export function SessionListItem({
   ].filter(Boolean);
 
   return (
-    <Pressable onPress={onPress} className="flex-row items-center py-3">
+    <Pressable onPress={onPress} className="flex-row items-center py-3 px-4">
       <Text className="text-lg mr-3">🏋</Text>
       <View className="flex-1">
         <Text className="text-text-primary font-sans-semibold">

@@ -34,7 +34,7 @@ export function RoutineCard({
   }
 
   return (
-    <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-3">
+    <View className="rounded-card border border-border-subtle bg-bg-surface p-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-text-primary text-base font-sans-semibold">
           {name}
