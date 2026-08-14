@@ -89,7 +89,7 @@ export default function SearchScreen() {
 
       {!loading && hasMinLength && results.length === 0 && (
         <Text className="text-text-secondary font-sans text-center mt-10">
-          Sin resultados para "{query.trim()}".
+          Sin resultados para &quot;{query.trim()}&quot;.
         </Text>
       )}
 
