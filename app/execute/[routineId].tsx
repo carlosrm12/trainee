@@ -188,8 +188,8 @@ export default function ExecuteRoutineScreen() {
           : -1;
         const lastStillIncomplete =
           lastIndex !== -1 &&
-          workingSetsFor(logs, execution.steps[lastIndex].id).length;
-        execution.steps[lastIndex].targetSets;
+          workingSetsFor(logs, execution.steps[lastIndex].id).length <
+            execution.steps[lastIndex].targetSets;
 
         const resumeIndex = lastStillIncomplete
           ? lastIndex
