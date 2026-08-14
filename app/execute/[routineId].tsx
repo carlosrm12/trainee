@@ -7,6 +7,7 @@ import { useLastWeightLookup } from "@/features/workout-session/useLastWeightLoo
 import { useWorkoutSession } from "@/features/workout-session/useWorkoutSession";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { RestTimerRing } from "@/shared/components/RestTimerRing";
+import { SessionConfetti } from "@/shared/components/SessionConfetti";
 import { SetStepper } from "@/shared/components/SetStepper";
 import { StatRow } from "@/shared/components/StatRow";
 import { useRestTimer } from "@/shared/hooks/useRestTimer";
@@ -81,6 +82,12 @@ export default function ExecuteRoutineScreen() {
   const [weightKg, setWeightKg] = useState(0);
   const [reps, setReps] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  // Evita que el confetti se repita si el usuario va y vuelve del resumen
+  // con "Revisar o corregir un set" / "Ver resumen ✓" — solo debe verse
+  // una vez, al completar la sesión (ver diseño §2.8: "evento de cierre
+  // único por sesión").
+  const hasCelebratedRef = useRef(false);
   const [routineName, setRoutineName] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
   const [initialized, setInitialized] = useState(false);
@@ -136,7 +143,12 @@ export default function ExecuteRoutineScreen() {
       setWeightKg(0);
     }
   }
-
+  useEffect(() => {
+    if (showSummary && !hasCelebratedRef.current) {
+      hasCelebratedRef.current = true;
+      setShowConfetti(true);
+    }
+  }, [showSummary]);
   function jumpToExercise(index: number, logs: SetLog[]) {
     const targetStep = execution.steps[index];
     if (!targetStep) return;
@@ -306,59 +318,62 @@ export default function ExecuteRoutineScreen() {
     return (
       <>
         <Stack.Screen options={{ animation: "slide_from_bottom" }} />
-        <ScrollView
-          className="flex-1 bg-bg-base px-6 pt-20"
-          contentContainerStyle={{ paddingBottom: 60 }}
-        >
-          <Text className="text-text-primary text-2xl font-sans-bold text-center">
-            ¡Sesión completada! 🎉
-          </Text>
-          <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
-            {routineName}
-          </Text>
-
-          <Pressable
-            onPress={() => setShowSummary(false)}
-            className="self-center mb-6"
+        <View className="flex-1 bg-bg-base">
+          <ScrollView
+            className="flex-1 px-6 pt-20"
+            contentContainerStyle={{ paddingBottom: 60 }}
           >
-            <Text className="text-accent font-sans text-sm underline">
-              ‹ Revisar o corregir un set
+            <Text className="text-text-primary text-2xl font-sans-bold text-center">
+              ¡Sesión completada! 🎉
             </Text>
-          </Pressable>
+            <Text className="text-text-secondary font-sans text-center mt-1 mb-6">
+              {routineName}
+            </Text>
 
-          <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
-            <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
-              {durationMinutes} min · {execution.steps.length} ejercicios
+            <Pressable
+              onPress={() => setShowSummary(false)}
+              className="self-center mb-6"
+            >
+              <Text className="text-accent font-sans text-sm underline">
+                ‹ Revisar o corregir un set
+              </Text>
+            </Pressable>
+
+            <View className="rounded-card border border-border-subtle bg-bg-surface p-4 mb-6">
+              <Text className="text-text-secondary text-sm font-sans mb-3 text-center">
+                {durationMinutes} min · {execution.steps.length} ejercicios
+              </Text>
+              <StatRow
+                items={[
+                  { value: String(totalSets), label: "sets" },
+                  {
+                    value: `${formatKg(totalVolumeKg)} kg`,
+                    label: "volumen total",
+                    countUpTo: totalVolumeKg,
+                    countUpFormatter: (n) => `${formatKg(n)} kg`,
+                  },
+                ]}
+              />
+            </View>
+
+            <Text className="text-text-secondary text-sm font-sans mb-2">
+              Nota (opcional)
             </Text>
-            <StatRow
-              items={[
-                { value: String(totalSets), label: "sets" },
-                {
-                  value: `${formatKg(totalVolumeKg)} kg`,
-                  label: "volumen total",
-                  countUpTo: totalVolumeKg,
-                  countUpFormatter: (n) => `${formatKg(n)} kg`,
-                },
-              ]}
+            <TextInput
+              value={sessionNotes}
+              onChangeText={setSessionNotes}
+              placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
+              placeholderTextColor="#9B9BA5"
+              multiline
+              numberOfLines={3}
+              className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
+              style={{ minHeight: 80, textAlignVertical: "top" }}
             />
-          </View>
 
-          <Text className="text-text-secondary text-sm font-sans mb-2">
-            Nota (opcional)
-          </Text>
-          <TextInput
-            value={sessionNotes}
-            onChangeText={setSessionNotes}
-            placeholder="¿Cómo te sentiste? Algo a mejorar la próxima..."
-            placeholderTextColor="#9B9BA5"
-            multiline
-            numberOfLines={3}
-            className="bg-bg-surface border border-border-subtle rounded-chip px-4 py-3 text-text-primary mb-8"
-            style={{ minHeight: 80, textAlignVertical: "top" }}
-          />
-
-          <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
-        </ScrollView>
+            <BrutalistButton label="Guardar" onPress={handleSaveSummary} />
+          </ScrollView>
+          {showConfetti && <SessionConfetti />}
+        </View>
       </>
     );
   }
