@@ -74,15 +74,21 @@ export default function RoutinesScreen() {
 
         {filteredRoutines.map((r, index) => (
           <StaggerItem key={r.id} index={index}>
-            <SwipeableRow onDelete={() => handleDeleteRoutine(r.id)}>
-              <RoutineCard
-                name={r.name}
-                meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-                isToday={r.dayOfWeek === todayDow}
-                onPress={() => router.push(`/routines/${r.id}/edit`)}
-                onStart={() => router.push(`/execute/${r.id}`)}
-              />
-            </SwipeableRow>
+            <View className="mb-3">
+              <SwipeableRow
+                borderRadius={16}
+                backgroundColor="transparent"
+                onDelete={() => handleDeleteRoutine(r.id)}
+              >
+                <RoutineCard
+                  name={r.name}
+                  meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+                  isToday={r.dayOfWeek === todayDow}
+                  onPress={() => router.push(`/routines/${r.id}/edit`)}
+                  onStart={() => router.push(`/execute/${r.id}`)}
+                />
+              </SwipeableRow>
+            </View>
           </StaggerItem>
         ))}
       </ScrollView>
