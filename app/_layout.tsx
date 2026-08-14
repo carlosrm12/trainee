@@ -10,6 +10,7 @@ import { Stack } from "expo-router";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { db } from "../data/db/client";
 import { seedInitialData } from "../data/seedInitialData";
 import migrations from "../drizzle/migrations/migrations";
@@ -34,26 +35,34 @@ export default function RootLayout() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base">
-        <Text className="text-danger">Error de migración: {error.message}</Text>
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View className="flex-1 items-center justify-center bg-bg-base">
+          <Text className="text-danger">
+            Error de migración: {error.message}
+          </Text>
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   if (!success || !seeded || !fontsLoaded) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-base">
-        <ActivityIndicator color="#F5C518" />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View className="flex-1 items-center justify-center bg-bg-base">
+          <ActivityIndicator color="#F5C518" />
+        </View>
+      </GestureHandlerRootView>
     );
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: "#0E0E12" },
-      }}
-    />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#0E0E12" },
+        }}
+      />
+    </GestureHandlerRootView>
   );
 }

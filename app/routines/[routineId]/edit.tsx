@@ -5,6 +5,7 @@ import { ExerciseRow } from "@/shared/components/ExerciseRow";
 import { SetStepper } from "@/shared/components/SetStepper";
 import { DAYS, getDayLabel } from "@/shared/constants/days";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Pencil } from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -29,7 +30,6 @@ export default function EditRoutineScreen() {
     removeExercise,
     moveExercise,
     updateRoutineInfo,
-    deleteRoutine,
   } = useRoutineEditor(routineId);
   const { activeSession } = useActiveSession();
 
@@ -50,36 +50,6 @@ export default function EditRoutineScreen() {
     if (!nameDraft.trim()) return;
     await updateRoutineInfo({ name: nameDraft.trim(), dayOfWeek: dayDraft });
     setEditingInfo(false);
-  }
-
-  function confirmDeleteRoutine() {
-    Alert.alert(
-      "Borrar rutina",
-      `Esto elimina "${routine?.name}" y todos sus ejercicios configurados. Tu historial de entrenamientos pasados NO se borra. ¿Continuar?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Borrar",
-          style: "destructive",
-          onPress: async () => {
-            await deleteRoutine();
-            router.replace("/routines");
-          },
-        },
-      ],
-    );
-  }
-
-  function openOptionsMenu() {
-    Alert.alert(routine?.name ?? "Rutina", undefined, [
-      { text: "Editar info", onPress: openInfoEditor },
-      {
-        text: "Borrar rutina",
-        style: "destructive",
-        onPress: confirmDeleteRoutine,
-      },
-      { text: "Cancelar", style: "cancel" },
-    ]);
   }
 
   function handleStartRoutine() {
@@ -157,8 +127,8 @@ export default function EditRoutineScreen() {
         <Pressable onPress={() => router.back()}>
           <Text className="text-text-secondary text-2xl">‹</Text>
         </Pressable>
-        <Pressable onPress={openOptionsMenu}>
-          <Text className="text-text-secondary text-2xl">⋮</Text>
+        <Pressable onPress={openInfoEditor} hitSlop={8}>
+          <Pencil color="#9B9BA5" size={20} />
         </Pressable>
       </View>
 

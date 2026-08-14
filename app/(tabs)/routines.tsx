@@ -3,10 +3,14 @@ import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { RoutineCard } from "@/shared/components/RoutineCard";
 import { StaggerItem } from "@/shared/components/StaggerItem";
+import { SwipeableRow } from "@/shared/components/SwipeableRow";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
+import { SQLiteRoutineRepository } from "@data/repositories/SQLiteRoutineRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+
+const routineRepo = new SQLiteRoutineRepository();
 
 const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 
@@ -37,6 +41,11 @@ export default function RoutinesScreen() {
         selectedFilter,
   );
 
+  async function handleDeleteRoutine(id: string) {
+    await routineRepo.delete(id);
+    reload();
+  }
+
   return (
     <View className="flex-1 bg-bg-base">
       <ScrollView
@@ -65,13 +74,15 @@ export default function RoutinesScreen() {
 
         {filteredRoutines.map((r, index) => (
           <StaggerItem key={r.id} index={index}>
-            <RoutineCard
-              name={r.name}
-              meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
-              isToday={r.dayOfWeek === todayDow}
-              onPress={() => router.push(`/routines/${r.id}/edit`)}
-              onStart={() => router.push(`/execute/${r.id}`)}
-            />
+            <SwipeableRow onDelete={() => handleDeleteRoutine(r.id)}>
+              <RoutineCard
+                name={r.name}
+                meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+                isToday={r.dayOfWeek === todayDow}
+                onPress={() => router.push(`/routines/${r.id}/edit`)}
+                onStart={() => router.push(`/execute/${r.id}`)}
+              />
+            </SwipeableRow>
           </StaggerItem>
         ))}
       </ScrollView>

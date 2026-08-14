@@ -3,7 +3,9 @@ import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { SessionListItem } from "@/shared/components/SessionListItem";
 import { StaggerItem } from "@/shared/components/StaggerItem";
 import { StatRow } from "@/shared/components/StatRow";
+import { SwipeableRow } from "@/shared/components/SwipeableRow";
 import { formatSessionDate } from "@/shared/utils/formatDate";
+import { SQLiteWorkoutSessionRepository } from "@data/repositories/SQLiteWorkoutSessionRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -13,6 +15,8 @@ import {
   Text,
   View,
 } from "react-native";
+
+const sessionRepo = new SQLiteWorkoutSessionRepository();
 
 const FILTER_OPTIONS = ["Todas", "Semana", "Mes", "Año"];
 const RANGE_DAYS: Record<string, number | null> = {
@@ -62,6 +66,11 @@ export default function HistoryScreen() {
 
   const [mostRecent, ...olderSessions] = filteredSessions;
 
+  async function handleDeleteSession(id: string) {
+    await sessionRepo.deleteSession(id);
+    reload();
+  }
+
   return (
     <ScrollView
       className="flex-1 bg-bg-base px-4 pt-16"
@@ -92,35 +101,40 @@ export default function HistoryScreen() {
           <Text className="text-text-secondary text-sm font-sans mb-2">
             Sesión más reciente
           </Text>
-          <Pressable
-            onPress={() => router.push(`/history/${mostRecent.id}`)}
-            className="rounded-card border border-border-subtle bg-bg-surface p-4"
+          <SwipeableRow
+            borderRadius={16}
+            onDelete={() => handleDeleteSession(mostRecent.id)}
           >
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-text-primary text-base font-sans-semibold">
-                {mostRecent.routineName}
-              </Text>
-              {isToday(mostRecent.date) && (
-                <View className="rounded-pill bg-accent px-3 py-1">
-                  <Text className="text-text-on-accent text-[10px] font-sans-semibold uppercase">
-                    Hoy
-                  </Text>
-                </View>
-              )}
-            </View>
-            <StatRow
-              items={[
-                ...(mostRecent.durationMinutes !== null
-                  ? [{ value: `${mostRecent.durationMinutes}`, label: "min" }]
-                  : []),
-                { value: String(mostRecent.totalSets), label: "sets" },
-                {
-                  value: `${Math.round(mostRecent.totalVolumeKg)}`,
-                  label: "kg totales",
-                },
-              ]}
-            />
-          </Pressable>
+            <Pressable
+              onPress={() => router.push(`/history/${mostRecent.id}`)}
+              className="rounded-card border border-border-subtle bg-bg-surface p-4"
+            >
+              <View className="flex-row items-center justify-between mb-3">
+                <Text className="text-text-primary text-base font-sans-semibold">
+                  {mostRecent.routineName}
+                </Text>
+                {isToday(mostRecent.date) && (
+                  <View className="rounded-pill bg-accent px-3 py-1">
+                    <Text className="text-text-on-accent text-[10px] font-sans-semibold uppercase">
+                      Hoy
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <StatRow
+                items={[
+                  ...(mostRecent.durationMinutes !== null
+                    ? [{ value: `${mostRecent.durationMinutes}`, label: "min" }]
+                    : []),
+                  { value: String(mostRecent.totalSets), label: "sets" },
+                  {
+                    value: `${Math.round(mostRecent.totalVolumeKg)}`,
+                    label: "kg totales",
+                  },
+                ]}
+              />
+            </Pressable>
+          </SwipeableRow>
         </View>
       )}
 
@@ -135,13 +149,15 @@ export default function HistoryScreen() {
                 <View
                   className={index > 0 ? "border-t border-border-subtle" : ""}
                 >
-                  <SessionListItem
-                    routineName={s.routineName}
-                    dateLabel={formatSessionDate(s.date)}
-                    durationMinutes={s.durationMinutes}
-                    totalSets={s.totalSets}
-                    onPress={() => router.push(`/history/${s.id}`)}
-                  />
+                  <SwipeableRow onDelete={() => handleDeleteSession(s.id)}>
+                    <SessionListItem
+                      routineName={s.routineName}
+                      dateLabel={formatSessionDate(s.date)}
+                      durationMinutes={s.durationMinutes}
+                      totalSets={s.totalSets}
+                      onPress={() => router.push(`/history/${s.id}`)}
+                    />
+                  </SwipeableRow>
                 </View>
               </StaggerItem>
             ))}
