@@ -88,6 +88,7 @@ export function useSessionDetail(sessionId: string) {
 
   return {
     loading,
+    notFound,
     routineName,
     dateIso,
     notes,
