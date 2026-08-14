@@ -143,7 +143,7 @@ export default function HistoryScreen() {
           <Text className="text-text-secondary text-sm font-sans mb-2">
             Sesiones anteriores
           </Text>
-          <View className="rounded-card border border-border-subtle bg-bg-surface px-4">
+          <View className="rounded-card border border-border-subtle bg-bg-surface overflow-hidden">
             {olderSessions.map((s, index) => (
               <StaggerItem key={s.id} index={index}>
                 <View

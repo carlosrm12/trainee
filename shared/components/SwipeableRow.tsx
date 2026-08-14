@@ -89,6 +89,18 @@ export function SwipeableRow({
     backgroundColor,
   }));
 
+  // FIX: el panel danger ya no depende únicamente de que "children" lo
+  // tape para quedar oculto en reposo. Con un ScrollView (no FlatList)
+  // todas las filas montan sus gestos/animaciones a la vez; si en el
+  // primer frame el contenido de arriba todavía no terminó de asentar
+  // layout/fondo, este panel (antes siempre a opacidad 1) se alcanzaba a
+  // ver — el flash rojo al cargar la pantalla. Ahora su opacidad está
+  // ligada a translateX igual que el ícono: en reposo (translateX = 0)
+  // es invisible de verdad, sin importar qué esté pasando arriba.
+  const panelStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [-ACTION_WIDTH, 0], [1, 0]),
+  }));
+
   const actionStyle = useAnimatedStyle(() => {
     const progress = interpolate(translateX.value, [-ACTION_WIDTH, 0], [1, 0]);
     return {
@@ -104,16 +116,19 @@ export function SwipeableRow({
     <Animated.View style={{ overflow: "hidden", borderRadius }}>
       <Animated.View
         pointerEvents="box-none"
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: ACTION_WIDTH,
-          backgroundColor: "#F26D6D",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        style={[
+          {
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: ACTION_WIDTH,
+            backgroundColor: "#F26D6D",
+            alignItems: "center",
+            justifyContent: "center",
+          },
+          panelStyle,
+        ]}
       >
         <Animated.View style={actionStyle}>
           <Pressable
