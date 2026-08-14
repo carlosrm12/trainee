@@ -129,7 +129,7 @@ export default function ExecuteRoutineScreen() {
       return;
     }
     setReps(step.repMin);
-    const lastWeight = await getLastWeight(step.exercise.id);
+    const lastWeight = await getLastWeight(step.exercise.id, setNumber);
     if (lastWeight !== null) {
       setWeightKg(lastWeight);
       return;

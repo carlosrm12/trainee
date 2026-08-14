@@ -6,7 +6,7 @@ const sessionRepo = new SQLiteWorkoutSessionRepository();
 
 export function useLastWeightLookup() {
   const getLastWeight = useCallback(
-    async (exerciseId: string): Promise<number | null> => {
+    async (exerciseId: string, setNumber: number): Promise<number | null> => {
       const allSets = await sessionRepo.getSetHistoryForExercise(exerciseId);
       if (allSets.length === 0) return null;
 
@@ -30,6 +30,17 @@ export function useLastWeightLookup() {
       }
 
       if (mostRecentSets.length === 0) return null;
+
+      // Preferir el peso del mismo número de set (set 1 → set 1, set 2 →
+      // set 2, etc.), no siempre el último de la sesión anterior. Si esa
+      // sesión tuvo menos sets que la actual (p. ej. hoy hay un set 4 nuevo
+      // y la vez pasada solo hubo 3), cae al último set registrado como
+      // mejor aproximación disponible.
+      const sameSetNumber = mostRecentSets.find(
+        (s) => s.setNumber === setNumber,
+      );
+      if (sameSetNumber) return sameSetNumber.weightKg;
+
       const lastSet = [...mostRecentSets].sort(
         (a, b) => b.setNumber - a.setNumber,
       )[0];
