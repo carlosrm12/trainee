@@ -49,3 +49,9 @@ El sistema de movimiento de la aplicación refuerza la jerarquía visual:
 1. Clona el repositorio:
    ```bash
    git clone [https://github.com/carlosrm12/trainee.git](https://github.com/carlosrm12/trainee.git)
+2. Instala las dependencias:
+   ```bash
+   npm install
+3. Inicia el servidor de desarrollo de Expo:
+   ```bash
+   npx expo start
