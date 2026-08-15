@@ -152,6 +152,10 @@ export default function HomeScreen() {
             </Text>
             <StatRow
               items={[
+                {
+                  value: String(featured.minutesEstimate),
+                  label: "min (est.)",
+                },
                 { value: String(featured.exerciseCount), label: "ejercicios" },
                 { value: String(featured.totalSets), label: "sets" },
               ]}
@@ -198,7 +202,7 @@ export default function HomeScreen() {
             key={r.id}
             variant="grid"
             name={r.name}
-            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+            meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios · ${r.minutesEstimate} min`}
             onPress={() => handleStartRoutine(r.id)}
           />
         ))}

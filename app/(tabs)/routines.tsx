@@ -82,7 +82,7 @@ export default function RoutinesScreen() {
               >
                 <RoutineCard
                   name={r.name}
-                  meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios`}
+                  meta={`${r.dayLabel} · ${r.exerciseCount} ejercicios · ${r.minutesEstimate} min`}
                   isToday={r.dayOfWeek === todayDow}
                   onPress={() => router.push(`/routines/${r.id}/edit`)}
                   onStart={() => router.push(`/execute/${r.id}`)}

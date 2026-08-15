@@ -7,6 +7,7 @@ import {
   getDominantCategory,
   type MuscleCategory,
 } from "../../shared/constants/muscleCategories";
+import { estimateMinutes } from "../../shared/utils/routineEstimation";
 
 const repo = new SQLiteRoutineRepository();
 const exerciseRepo = new SQLiteExerciseRepository();
@@ -14,6 +15,7 @@ const exerciseRepo = new SQLiteExerciseRepository();
 export type RoutineWithMeta = Routine & {
   exerciseCount: number;
   totalSets: number;
+  minutesEstimate: number;
   dayLabel: string;
   category: MuscleCategory | null;
 };
@@ -41,6 +43,12 @@ export function useRoutines() {
           ...r,
           exerciseCount: exercises.length,
           totalSets: exercises.reduce((sum, e) => sum + e.targetSets, 0),
+          minutesEstimate: estimateMinutes(
+            exercises.map((e) => ({
+              targetSets: e.targetSets,
+              restSeconds: e.restSeconds,
+            })),
+          ),
           dayLabel: getDayLabel(r.dayOfWeek),
           category: getDominantCategory(muscleGroups),
         };
