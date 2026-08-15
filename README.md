@@ -1,50 +1,51 @@
-# Welcome to your Expo app 👋
+# 🦋 Morphos (Trainee)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> **Tu registro personal de entrenamiento de bolsillo.**
+> Una aplicación móvil diseñada para el entorno del gimnasio, enfocada en la rapidez, cero fricciones y legibilidad bajo cualquier tipo de luz gracias a su sistema de diseño utilitario.
 
-## Get started
+##  Sobre el Proyecto
 
-1. Install dependencies
+Morphos (originalmente conceptualizada como *Trainee* o *TrainLog*) nace de la necesidad de tener un registro de entrenamiento eficiente, eliminando interacciones innecesarias durante la rutina en el gimnasio. El flujo central está optimizado para funcionar en un máximo de dos toques desde la pantalla principal: elegir la rutina, ejecutarla con un temporizador integrado y guardar el registro histórico.
 
+##  Sistema de Diseño y Arquitectura (Fase 1)
+
+La interfaz está construida bajo una filosofía de diseño utilitaria, estructurada en capas para resolver diferentes problemas de experiencia de usuario:
+
+*   **Base "Dark Flat Minimal":** 
+    Fondos oscuros (`#0E0E12`) con tarjetas planas y bordes sutiles de 1px. Evitamos sombras difusas complejas para garantizar un renderizado económico (60fps) y alto contraste, ideal para la luz dura del gimnasio.
+*   **Acentos Neo-Brutalistas:** 
+    Los CTAs (Call to Action) principales como "Empezar Rutina" o "Marcar Set" y los estados activos (como la píldora del menú inferior) utilizan bordes duros de 2px y sombras offset sólidas (color de acento amarillo `#F5C518`). Esto comunica acciones de forma contundente sin interrumpir el diseño minimalista de la base.
+*   **Bento Selectivo & Stat-Rows:** 
+    El formato "Bento Grid" se reserva exclusivamente para comunicar jerarquía real (ej. resaltar la última sesión completada en el historial). Para métricas relacionadas en pantalla (como duración, series, repeticiones), se utilizan "Stat-rows segmentados" para condensar la información sin multiplicar innecesariamente la cantidad de componentes visuales.
+*   **Chips Outline:**
+    Para los filtros rápidos (ej. tipos de rutinas, vistas de historial), se utilizan "chips" transparentes con borde de acento, reservando el color amarillo de relleno únicamente para las acciones primarias.
+
+##  Animaciones y Micro-interacciones
+
+El sistema de movimiento de la aplicación refuerza la jerarquía visual:
+
+*   **Elementos Brutalistas (Acentos):** Cuentan con físicas de resorte (springs) que generan un rebote perceptible al interactuar, comunicando solidez. Al completar un set, los botones transicionan de estado con breves animaciones de escala.
+*   **Elementos Flat (Base):** Movimientos con tiempos suaves y discretos para listas y navegaciones.
+*   **Swipe-to-delete:** Gestos fluidos integrados en las listas (historial, rutinas) para acciones secundarias como edición o borrado.
+*   **Feedback Inmersivo:** El `RestTimerRing` cuenta con animaciones de progreso SVG fluidas y una celebración visual (confetti minimalista + odómetro) exclusiva para la pantalla de finalización del entrenamiento.
+*   **Modo Focus (Ejecución):** Transición suave al iniciar una rutina que esconde la navegación inferior para evitar distracciones durante la ejecución de los sets.
+
+##  Stack Tecnológico
+
+**Frontend & UI:**
+*   React Native / Expo
+*   Expo Router (Navegación basada en archivos)
+*   NativeWind (Tailwind CSS adaptado a RN)
+*   React Native Reanimated v3 + Moti (Animaciones fluidas y gestos)
+*   Lottie & React Native Skia (Animaciones SVG vectoriales)
+
+**Base de Datos & Configuración Local:**
+*   SQLite
+*   Drizzle ORM
+*   EAS (Expo Application Services) para builds nativos.
+
+##  Instalación y Desarrollo local
+
+1. Clona el repositorio:
    ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   git clone [https://github.com/carlosrm12/trainee.git](https://github.com/carlosrm12/trainee.git)
