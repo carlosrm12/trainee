@@ -1,6 +1,6 @@
 import { AttachedBottomNav } from "@/shared/components/AttachedBottomNav";
 import { Tabs } from "expo-router";
-import { Dumbbell, History, Home, Search, User } from "lucide-react-native";
+import { Dumbbell, History, Home, Salad, Search } from "lucide-react-native";
 
 export default function TabsLayout() {
   return (
@@ -25,6 +25,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="nutrition"
+        options={{
+          title: "Nutrición",
+          tabBarIcon: ({ color, size }) => <Salad color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
           title: "Historial",
@@ -38,13 +45,6 @@ export default function TabsLayout() {
         options={{
           title: "Buscar",
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Perfil",
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
     </Tabs>

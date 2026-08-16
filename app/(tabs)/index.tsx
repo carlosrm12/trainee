@@ -1,14 +1,15 @@
-import { useReminders } from "@/features/notifications/useReminders";
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useFeaturedRoutine } from "@/features/routines/useFeaturedRoutine";
 import { useRoutines } from "@/features/routines/useRoutines";
 import { useActiveSession } from "@/features/workout-session/useActiveSession";
+import { AppHeader } from "@/shared/components/AppHeader";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { RoutineCard } from "@/shared/components/RoutineCard";
 import { StatRow } from "@/shared/components/StatRow";
 import { StreakBadge } from "@/shared/components/StreakBadge";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
+import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -26,11 +27,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
   const { activeSession, discard, recheck } = useActiveSession();
-  const { streakDays, trainedToday, reload: reloadStats } = useProfileStats();
+  const { streakDays, reload: reloadStats } = useProfileStats();
+  const { avatarUri, hasReminderPending } = useAppHeaderState();
   const featured = useFeaturedRoutine(routines);
   const [selectedFilter, setSelectedFilter] = useState("Todas");
-
-  const reminders = useReminders({ routines, streakDays, trainedToday });
 
   useFocusEffect(
     useCallback(() => {
@@ -73,23 +73,13 @@ export default function HomeScreen() {
       className="flex-1 bg-bg-base px-4 pt-16"
       contentContainerStyle={{ paddingBottom: 100 }}
     >
-      <View className="flex-row items-center justify-between mb-1">
-        <Text className="text-text-primary text-2xl font-sans-bold">
-          Hola, Carlos
-        </Text>
-        <View className="flex-row items-center gap-3">
-          <Pressable onPress={() => router.push("/reminders")}>
-            <View>
-              <Text className="text-2xl">🔔</Text>
-              {reminders.length > 0 && (
-                <View className="absolute -top-0.5 -right-0.5 bg-danger rounded-full w-2.5 h-2.5" />
-              )}
-            </View>
-          </Pressable>
-          <StreakBadge days={streakDays} />
-        </View>
-      </View>
-      <Text className="text-text-secondary font-sans mb-4">
+      <AppHeader
+        title="Hola, Carlos"
+        avatarUri={avatarUri}
+        hasReminderPending={hasReminderPending}
+        rightExtra={<StreakBadge days={streakDays} />}
+      />
+      <Text className="text-text-secondary font-sans mb-4 -mt-3">
         Tus rutinas de la semana
       </Text>
 

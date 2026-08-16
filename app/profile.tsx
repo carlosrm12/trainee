@@ -3,7 +3,7 @@ import { useSettings } from "@/features/profile/useSettings";
 import { StatRow } from "@/shared/components/StatRow";
 import { File, Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
   ActivityIndicator,
@@ -29,8 +29,6 @@ function toggleStyle(active: boolean) {
 
 const AVATAR_FILENAME = "avatar.jpg";
 
-// Copia la imagen elegida al directorio de documentos para que sobreviva
-// más allá del caché temporal del picker (que puede limpiarse entre sesiones).
 async function persistAvatar(pickedUri: string): Promise<string> {
   const source = new File(pickedUri);
   const dest = new File(Paths.document, AVATAR_FILENAME);
@@ -38,12 +36,11 @@ async function persistAvatar(pickedUri: string): Promise<string> {
     dest.delete();
   }
   await source.copy(dest);
-  // Cache-bust: mismo nombre de archivo si reemplazas la foto, así que
-  // forzamos a Image a recargar con un query param único.
   return `${dest.uri}?v=${Date.now()}`;
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const {
     loading: statsLoading,
     totalSessions,
@@ -106,6 +103,15 @@ export default function ProfileScreen() {
       className="flex-1 bg-bg-base px-6 pt-16"
       contentContainerStyle={{ paddingBottom: 100 }}
     >
+      <View className="flex-row items-center justify-between mb-6">
+        <Text className="text-text-primary text-2xl font-sans-bold">
+          Perfil
+        </Text>
+        <Pressable onPress={() => router.back()}>
+          <Text className="text-accent font-sans-semibold">Cerrar</Text>
+        </Pressable>
+      </View>
+
       <View className="items-center mb-6">
         <Pressable onPress={handlePickAvatar}>
           {avatarUri ? (

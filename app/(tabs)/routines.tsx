@@ -1,10 +1,12 @@
 import { useRoutines } from "@/features/routines/useRoutines";
+import { AppHeader } from "@/shared/components/AppHeader";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { RoutineCard } from "@/shared/components/RoutineCard";
 import { StaggerItem } from "@/shared/components/StaggerItem";
 import { SwipeableRow } from "@/shared/components/SwipeableRow";
 import { MUSCLE_CATEGORY_LABEL } from "@/shared/constants/muscleCategories";
+import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { SQLiteRoutineRepository } from "@data/repositories/SQLiteRoutineRepository";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -17,6 +19,7 @@ const FILTER_OPTIONS = ["Todas", "Empuje", "Tirón", "Pierna"];
 export default function RoutinesScreen() {
   const router = useRouter();
   const { routines, loading, reload } = useRoutines();
+  const { avatarUri, hasReminderPending } = useAppHeaderState();
   const [selectedFilter, setSelectedFilter] = useState("Todas");
 
   useFocusEffect(
@@ -52,9 +55,11 @@ export default function RoutinesScreen() {
         className="flex-1 px-4 pt-16"
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <Text className="text-text-primary text-2xl font-sans-bold mb-4">
-          Rutinas
-        </Text>
+        <AppHeader
+          title="Rutinas"
+          avatarUri={avatarUri}
+          hasReminderPending={hasReminderPending}
+        />
 
         <View className="mb-6">
           <FilterChipOutline

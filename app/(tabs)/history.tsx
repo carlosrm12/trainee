@@ -1,9 +1,11 @@
 import { useSessionHistory } from "@/features/history/useSessionHistory";
+import { AppHeader } from "@/shared/components/AppHeader";
 import { FilterChipOutline } from "@/shared/components/FilterChipOutline";
 import { SessionListItem } from "@/shared/components/SessionListItem";
 import { StaggerItem } from "@/shared/components/StaggerItem";
 import { StatRow } from "@/shared/components/StatRow";
 import { SwipeableRow } from "@/shared/components/SwipeableRow";
+import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { formatSessionDate } from "@/shared/utils/formatDate";
 import { SQLiteWorkoutSessionRepository } from "@data/repositories/SQLiteWorkoutSessionRepository";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -40,6 +42,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const { sessions, loading, reload } = useSessionHistory();
   const [selectedFilter, setSelectedFilter] = useState("Todas");
+  const { avatarUri, hasReminderPending } = useAppHeaderState();
 
   useFocusEffect(
     useCallback(() => {
@@ -76,9 +79,11 @@ export default function HistoryScreen() {
       className="flex-1 bg-bg-base px-4 pt-16"
       contentContainerStyle={{ paddingBottom: 60 }}
     >
-      <Text className="text-text-primary text-2xl font-sans-bold mb-4">
-        Historial
-      </Text>
+      <AppHeader
+        title="Historial"
+        avatarUri={avatarUri}
+        hasReminderPending={hasReminderPending}
+      />
 
       <View className="mb-6">
         <FilterChipOutline
