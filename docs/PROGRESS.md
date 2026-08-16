@@ -9,12 +9,17 @@
 
 ## Estado actual
 
-**Fase 2: paso 1 (Routing) mergeado a main.**
-Próximo paso: **2 — Modelo de datos** (migraciones Drizzle para `nutritionProfile`, `mealLogs`,
-`shoppingLists`, `nutritionDayReports`; utilidades `formatCurrency`, `resolveWeightUnit`,
-`getLocalDateString`). Ver §3 y §9 del .md para el detalle exacto de tipos de columna y funciones.
+**Fase 2: paso 2 (Modelo de datos) mergeado a main.**
+Próximo paso: **3 — Ajustes de Nutrición** (pantalla completa de §7: perfil físico, macros,
+presupuesto, restricciones, unidad; extraer `SettingsRow` compartido reutilizando el patrón de
+`profile.tsx`).
 
 Branch activo: ninguno todavía.
+
+Pendiente arrastrado del paso 2 (no bloqueante): hacer el sanity check manual de
+`getLocalDateString` en el dispositivo apenas haya una pantalla real donde probarlo — confirmar que
+una hora tipo 23:30 del 1 de enero en zona local (UTC-5) devuelve `"2026-01-01"` y no `"2026-01-02"`.
+Se hace en el paso 3.
 
 ---
 
@@ -24,7 +29,7 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
 
 - `✅` **1. Routing** — mover `profile.tsx`, crear `AppHeader`, tab `Nutrición` con ícono `Salad`,
   crear rutas vacías `nutrition-settings.tsx` y `nutrition-day/[date].tsx`.
-- `☐` **2. Modelo de datos** — migraciones Drizzle: `nutritionProfile`, `mealLogs`, `shoppingLists`,
+- `✅` **2. Modelo de datos** — migraciones Drizzle: `nutritionProfile`, `mealLogs`, `shoppingLists`,
   `nutritionDayReports`. Utilidades: `formatCurrency`, `resolveWeightUnit`, `getLocalDateString`.
 - `☐` **3. Ajustes de Nutrición** — pantalla completa (§7), extraer `SettingsRow` compartido.
 - `☐` **4. Perfil recortado** — confirmar alcance de `profile.tsx` (§8), mover lo que haya quedado
@@ -61,3 +66,15 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     lógica solo para pintar el avatar y el badge de la campana. Implica un fetch de `routines`/`stats`
     independiente del que cada pantalla ya hace para su propio contenido — duplicación de query menor,
     aceptable en SQLite local de un solo usuario. Si en algún momento pesa, se puede fusionar.
+- **Paso 2 (Modelo de datos)**:
+  - Migración generada con `npx drizzle-kit generate` en vez de escrita a mano, para que el nombre del
+    archivo, `_journal.json` y `migrations.js` queden siempre sincronizados con el diff real de
+    `schema.ts` — se revisó el `.sql` resultante antes de commitear (solo `CREATE TABLE`, sin tocar
+    tablas existentes).
+  - `dietaryPreferences`/`dietaryRestrictions` se guardan como texto JSON stringificado (columna
+    `text`) en vez de una tabla relacional aparte — mismo criterio de simplicidad que `itemsJson` en
+    `shoppingLists`; a este volumen de datos (listas cortas, un solo usuario) no se justifica una
+    tabla normalizada.
+  - `SQLiteNutritionProfileRepository.update` arma el objeto de cambios con spreads condicionales
+    campo por campo (en vez de un cast genérico a `Record<string, unknown>`) para que TypeScript siga
+    validando los tipos contra las columnas de Drizzle.
