@@ -9,9 +9,10 @@
 
 ## Estado actual
 
-**Fase 2: planificación cerrada, implementación sin empezar.**
-Próximo paso: **1 — Routing** (mover `profile.tsx` fuera de tabs, crear `AppHeader`, agregar tab
-`Nutrición`). Ver §2 del .md para el detalle exacto de archivos a tocar.
+**Fase 2: paso 1 (Routing) mergeado a main.**
+Próximo paso: **2 — Modelo de datos** (migraciones Drizzle para `nutritionProfile`, `mealLogs`,
+`shoppingLists`, `nutritionDayReports`; utilidades `formatCurrency`, `resolveWeightUnit`,
+`getLocalDateString`). Ver §3 y §9 del .md para el detalle exacto de tipos de columna y funciones.
 
 Branch activo: ninguno todavía.
 
@@ -21,7 +22,7 @@ Branch activo: ninguno todavía.
 
 Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado a main
 
-- `☐` **1. Routing** — mover `profile.tsx`, crear `AppHeader`, tab `Nutrición` con ícono `Salad`,
+- `✅` **1. Routing** — mover `profile.tsx`, crear `AppHeader`, tab `Nutrición` con ícono `Salad`,
   crear rutas vacías `nutrition-settings.tsx` y `nutrition-day/[date].tsx`.
 - `☐` **2. Modelo de datos** — migraciones Drizzle: `nutritionProfile`, `mealLogs`, `shoppingLists`,
   `nutritionDayReports`. Utilidades: `formatCurrency`, `resolveWeightUnit`, `getLocalDateString`.
@@ -46,7 +47,17 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
 ## Log de decisiones tomadas durante implementación
 
 > Cosas que surgen programando y no estaban (o no podían estar) previstas en el .md. El .md es la
-> fuente de verdad de *diseño*; acá va la fuente de verdad de *lo que pasó al construirlo*. Si algo acá
+> fuente de verdad de _diseño_; acá va la fuente de verdad de _lo que pasó al construirlo_. Si algo acá
 > contradice al .md de forma importante, se actualiza el .md y se anota el cambio acá con fecha.
 
-_(vacío — se completa a medida que se avanza)_
+- **Paso 1 (Routing)**:
+  - `AppHeader` con slot `rightExtra`: el .md no lo especifica, pero Home ya mostraba `StreakBadge`
+    junto al saludo y Ejercicios ya mostraba "+ Nuevo" junto al título. En vez de agregar un prop
+    nuevo por caso, `AppHeader` acepta un `rightExtra?: ReactNode` genérico.
+  - Orden del cluster derecho de `AppHeader`: `[rightExtra] [⚙ si aplica] 🔔 👤` — la campana va
+    antes que el avatar (el .md la mostraba con el avatar primero; se ajustó a pedido).
+  - `useAppHeaderState` (hook nuevo, no estaba en el .md): centraliza el cableado de
+    `routines + stats + settings + reminders` para que las 5 pantallas de tabs no repitan la misma
+    lógica solo para pintar el avatar y el badge de la campana. Implica un fetch de `routines`/`stats`
+    independiente del que cada pantalla ya hace para su propio contenido — duplicación de query menor,
+    aceptable en SQLite local de un solo usuario. Si en algún momento pesa, se puede fusionar.

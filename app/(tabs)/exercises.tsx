@@ -1,10 +1,12 @@
 import { useExerciseCatalog } from "@/features/exercises/useExerciseCatalog";
+import { AppHeader } from "@/shared/components/AppHeader";
 import {
   MUSCLE_GROUPS,
   getMuscleGroupLabel,
 } from "@/shared/constants/muscleGroups";
 import { WEIGHT_INPUT_MODES } from "@/shared/constants/weightInputModes";
 import { WEIGHT_UNITS } from "@/shared/constants/weightUnits";
+import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -32,6 +34,7 @@ export default function ExerciseCatalogScreen() {
   } = useExerciseCatalog();
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { avatarUri, hasReminderPending } = useAppHeaderState();
 
   useFocusEffect(
     useCallback(() => {
@@ -60,14 +63,16 @@ export default function ExerciseCatalogScreen() {
 
   return (
     <View className="flex-1 bg-bg-base px-4 pt-16">
-      <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-text-primary text-2xl font-sans-bold">
-          Ejercicios
-        </Text>
-        <Pressable onPress={() => router.push("/exercises/new")}>
-          <Text className="text-accent font-sans-semibold">+ Nuevo</Text>
-        </Pressable>
-      </View>
+      <AppHeader
+        title="Ejercicios"
+        avatarUri={avatarUri}
+        hasReminderPending={hasReminderPending}
+        rightExtra={
+          <Pressable onPress={() => router.push("/exercises/new")}>
+            <Text className="text-accent font-sans-semibold">+ Nuevo</Text>
+          </Pressable>
+        }
+      />
 
       <TextInput
         value={search}
