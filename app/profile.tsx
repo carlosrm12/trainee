@@ -1,6 +1,8 @@
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useSettings } from "@/features/profile/useSettings";
+import { SettingsRow } from "@/shared/components/SettingsRow";
 import { StatRow } from "@/shared/components/StatRow";
+import { segmentedToggleStyle } from "@/shared/utils/segmentedToggleStyle";
 import { File, Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -15,17 +17,6 @@ import {
   Text,
   View,
 } from "react-native";
-
-function toggleStyle(active: boolean) {
-  return {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    borderWidth: 1,
-    backgroundColor: active ? "#F5C518" : "#1A1A20",
-    borderColor: active ? "#F5C518" : "#2A2A32",
-  };
-}
 
 const AVATAR_FILENAME = "avatar.jpg";
 
@@ -157,7 +148,11 @@ export default function ProfileScreen() {
       <View className="flex-row gap-2 mb-6">
         <Pressable
           onPress={() => setWeightUnit("kg")}
-          style={toggleStyle(weightUnit === "kg")}
+          style={[
+            segmentedToggleStyle(weightUnit === "kg"),
+            { alignSelf: "stretch" },
+          ]}
+          className="items-center justify-center"
         >
           <Text
             className={
@@ -171,7 +166,11 @@ export default function ProfileScreen() {
         </Pressable>
         <Pressable
           onPress={() => setWeightUnit("lb")}
-          style={toggleStyle(weightUnit === "lb")}
+          style={[
+            segmentedToggleStyle(weightUnit === "lb"),
+            { alignSelf: "stretch" },
+          ]}
+          className="items-center justify-center"
         >
           <Text
             className={
@@ -186,56 +185,43 @@ export default function ProfileScreen() {
       </View>
 
       <View className="rounded-card border border-border-subtle bg-bg-surface">
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-border-subtle">
-          <View className="flex-1 pr-3">
-            <Text className="text-text-primary font-sans-semibold">
-              Notificaciones
-            </Text>
-            <Text className="text-text-secondary text-xs font-sans mt-0.5">
-              Avisa cuando termina el descanso, aunque tengas la app cerrada.
-            </Text>
-          </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        <View className="flex-row items-center justify-between px-4 py-4 border-b border-border-subtle">
-          <View className="flex-1 pr-3">
-            <Text className="text-text-primary font-sans-semibold">
-              Sonido del timer
-            </Text>
-            <Text className="text-text-secondary text-xs font-sans mt-0.5">
-              Reproduce un sonido al terminar el descanso.
-            </Text>
-          </View>
-          <Switch
-            value={soundEnabled}
-            onValueChange={setSoundEnabled}
-            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        <View className="flex-row items-center justify-between px-4 py-4">
-          <View className="flex-1 pr-3">
-            <Text className="text-text-primary font-sans-semibold">
-              Vibración del timer
-            </Text>
-            <Text className="text-text-secondary text-xs font-sans mt-0.5">
-              Vibra al terminar el descanso con la app abierta.
-            </Text>
-          </View>
-          <Switch
-            value={vibrationEnabled}
-            onValueChange={setVibrationEnabled}
-            trackColor={{ false: "#2A2A32", true: "#F5C518" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
+        <SettingsRow
+          label="Notificaciones"
+          description="Avisa cuando termina el descanso, aunque tengas la app cerrada."
+          control={
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+              thumbColor="#FFFFFF"
+            />
+          }
+        />
+        <SettingsRow
+          label="Sonido del timer"
+          description="Reproduce un sonido al terminar el descanso."
+          control={
+            <Switch
+              value={soundEnabled}
+              onValueChange={setSoundEnabled}
+              trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+              thumbColor="#FFFFFF"
+            />
+          }
+        />
+        <SettingsRow
+          label="Vibración del timer"
+          description="Vibra al terminar el descanso con la app abierta."
+          isLast
+          control={
+            <Switch
+              value={vibrationEnabled}
+              onValueChange={setVibrationEnabled}
+              trackColor={{ false: "#2A2A32", true: "#F5C518" }}
+              thumbColor="#FFFFFF"
+            />
+          }
+        />
       </View>
     </ScrollView>
   );
