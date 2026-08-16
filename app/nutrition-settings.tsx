@@ -9,17 +9,19 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 const GOAL_LABEL: Record<NutritionGoal, string> = {
   deficit: "Déficit",
   bulk: "Volumen",
-  maintenance: "Mantenimiento",
+  maintenance: "Mantener",
 };
 
 const GOAL_OPTIONS: NutritionGoal[] = ["deficit", "bulk", "maintenance"];
@@ -148,7 +150,60 @@ function TagListEditor({
     </View>
   );
 }
+// Se monta/desmonta condicionalmente (nada de medición manual de altura,
+// que peleaba con Reanimated y causaba el parpadeo) — FadeIn/FadeOut se
+// encargan de la transición suave, es el mecanismo nativo de Reanimated
+// para esto, no algo armado a mano.
+function WeightUnitPicker({
+  expanded,
+  value,
+  onChange,
+}: {
+  expanded: boolean;
+  value: "kg" | "lb";
+  onChange: (unit: "kg" | "lb") => void;
+}) {
+  if (!expanded) return null;
 
+  return (
+    <Animated.View
+      entering={FadeIn.duration(150)}
+      exiting={FadeOut.duration(120)}
+      className="flex-row gap-2 px-4 pt-4 pb-4"
+    >
+      <Pressable
+        onPress={() => onChange("kg")}
+        style={[segmentedToggleStyle(value === "kg"), { alignSelf: "stretch" }]}
+        className="flex-1 items-center justify-center"
+      >
+        <Text
+          className={
+            value === "kg"
+              ? "text-text-on-accent font-sans-semibold"
+              : "text-text-secondary font-sans"
+          }
+        >
+          Kilogramos (kg)
+        </Text>
+      </Pressable>
+      <Pressable
+        onPress={() => onChange("lb")}
+        style={[segmentedToggleStyle(value === "lb"), { alignSelf: "stretch" }]}
+        className="flex-1 items-center justify-center"
+      >
+        <Text
+          className={
+            value === "lb"
+              ? "text-text-on-accent font-sans-semibold"
+              : "text-text-secondary font-sans"
+          }
+        >
+          Libras (lb)
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
 export default function NutritionSettingsScreen() {
   const router = useRouter();
   const { profile, loading, update } = useNutritionProfile();
@@ -213,7 +268,7 @@ export default function NutritionSettingsScreen() {
           onCommit={(v) => update({ currentWeightKg: v })}
         />
       </View>
-      <View className="mb-4" style={{ width: "48%" }}>
+      <View className="flex-row mb-4">
         <NumberField
           label="Peso objetivo"
           value={current.targetWeightKg}
@@ -228,8 +283,11 @@ export default function NutritionSettingsScreen() {
           <Pressable
             key={g}
             onPress={() => update({ goal: g })}
-            style={[segmentedToggleStyle(current.goal === g), { flex: 1 }]}
-            className="items-center"
+            style={[
+              segmentedToggleStyle(current.goal === g),
+              { flex: 1, alignSelf: "stretch" },
+            ]}
+            className="items-center justify-center"
           >
             <Text
               className={
@@ -253,7 +311,10 @@ export default function NutritionSettingsScreen() {
           description={`Actualmente: ${globalWeightUnit === "kg" ? "Kilogramos (kg)" : "Libras (lb)"}`}
           control={
             <Pressable
-              onPress={() => update({ weightUnitOverride: null })}
+              onPress={() => {
+                Keyboard.dismiss();
+                update({ weightUnitOverride: null });
+              }}
               className="w-6 h-6 rounded-full border-2 border-accent items-center justify-center"
             >
               {!usesOwnUnit && (
@@ -266,12 +327,13 @@ export default function NutritionSettingsScreen() {
           label="Elegir para Nutrición"
           control={
             <Pressable
-              onPress={() =>
+              onPress={() => {
+                Keyboard.dismiss();
                 update({
                   weightUnitOverride:
                     current.weightUnitOverride ?? globalWeightUnit,
-                })
-              }
+                });
+              }}
               className="w-6 h-6 rounded-full border-2 border-accent items-center justify-center"
             >
               {usesOwnUnit && (
@@ -280,51 +342,11 @@ export default function NutritionSettingsScreen() {
             </Pressable>
           }
         />
-        {/* Siempre montado (nunca condicional) para no disparar reflow del
-            ScrollView al aparecer/desaparecer — solo cambia opacity. Ver
-            PROGRESS.md, log del paso 3, bug del "salto" sobre Peso objetivo. */}
-        <View
-          className="flex-row gap-2 px-4 pb-4"
-          style={{ opacity: usesOwnUnit ? 1 : 0 }}
-          pointerEvents={usesOwnUnit ? "auto" : "none"}
-        >
-          <Pressable
-            onPress={() => update({ weightUnitOverride: "kg" })}
-            style={[
-              segmentedToggleStyle(current.weightUnitOverride === "kg"),
-              { flex: 1 },
-            ]}
-            className="items-center"
-          >
-            <Text
-              className={
-                current.weightUnitOverride === "kg"
-                  ? "text-text-on-accent font-sans-semibold"
-                  : "text-text-secondary font-sans"
-              }
-            >
-              Kilogramos (kg)
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => update({ weightUnitOverride: "lb" })}
-            style={[
-              segmentedToggleStyle(current.weightUnitOverride === "lb"),
-              { flex: 1 },
-            ]}
-            className="items-center"
-          >
-            <Text
-              className={
-                current.weightUnitOverride === "lb"
-                  ? "text-text-on-accent font-sans-semibold"
-                  : "text-text-secondary font-sans"
-              }
-            >
-              Libras (lb)
-            </Text>
-          </Pressable>
-        </View>
+        <WeightUnitPicker
+          expanded={usesOwnUnit}
+          value={current.weightUnitOverride ?? globalWeightUnit}
+          onChange={(unit) => update({ weightUnitOverride: unit })}
+        />
       </View>
 
       <Text className="text-text-primary font-sans-semibold mb-3">
@@ -365,14 +387,12 @@ export default function NutritionSettingsScreen() {
         Presupuesto semanal
       </Text>
       <View className="flex-row items-end gap-3 mb-8">
-        <View style={{ width: "48%" }}>
-          <NumberField
-            label="Monto"
-            value={current.weeklyBudget}
-            suffix={current.currency}
-            onCommit={(v) => update({ weeklyBudget: v })}
-          />
-        </View>
+        <NumberField
+          label="Monto"
+          value={current.weeklyBudget}
+          suffix={current.currency}
+          onCommit={(v) => update({ weeklyBudget: v })}
+        />
         <Text className="text-text-secondary text-xs font-sans pb-2 flex-1">
           {current.weeklyBudget !== null
             ? formatCurrency(current.weeklyBudget, current.currency)

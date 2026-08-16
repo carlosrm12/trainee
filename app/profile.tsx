@@ -148,7 +148,11 @@ export default function ProfileScreen() {
       <View className="flex-row gap-2 mb-6">
         <Pressable
           onPress={() => setWeightUnit("kg")}
-          style={segmentedToggleStyle(weightUnit === "kg")}
+          style={[
+            segmentedToggleStyle(weightUnit === "kg"),
+            { alignSelf: "stretch" },
+          ]}
+          className="items-center justify-center"
         >
           <Text
             className={
@@ -162,7 +166,11 @@ export default function ProfileScreen() {
         </Pressable>
         <Pressable
           onPress={() => setWeightUnit("lb")}
-          style={segmentedToggleStyle(weightUnit === "lb")}
+          style={[
+            segmentedToggleStyle(weightUnit === "lb"),
+            { alignSelf: "stretch" },
+          ]}
+          className="items-center justify-center"
         >
           <Text
             className={
