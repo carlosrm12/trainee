@@ -86,3 +86,71 @@ export const userSettings = sqliteTable("user_settings", {
     .default(true),
   avatarUri: text("avatar_uri"), // ruta local del avatar copiado a documentDirectory, null = sin foto
 });
+
+// --- Fase 2: Nutrición ---
+
+// Perfil físico y metas de nutrición — una sola fila fija (id="default"),
+// mismo patrón que user_settings. Fuente de verdad del "system prompt"
+// (ver §4 del doc de Fase 2) — nunca se versiona como archivo.
+export const nutritionProfile = sqliteTable("nutrition_profile", {
+  id: text("id").primaryKey(),
+  heightCm: real("height_cm"),
+  currentWeightKg: real("current_weight_kg"),
+  targetWeightKg: real("target_weight_kg"),
+  goal: text("goal"), // "deficit" | "bulk" | "maintenance"
+  weightUnitOverride: text("weight_unit_override"), // "kg" | "lb" | null → hereda settings.weightUnit
+  dailyCalorieTarget: integer("daily_calorie_target"), // integer: kcal ya se muestran redondeadas en toda la app
+  dailyProteinG: real("daily_protein_g"), // real: magnitud continua, mismo criterio que weightKg
+  dailyCarbsG: real("daily_carbs_g"),
+  dailyFatG: real("daily_fat_g"),
+  weeklyBudget: real("weekly_budget"),
+  currency: text("currency").notNull().default("USD"), // código ISO, nunca símbolo hardcodeado
+  dietaryPreferences: text("dietary_preferences"), // JSON stringified string[]
+  dietaryRestrictions: text("dietary_restrictions"), // JSON stringified string[]
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+// Registro de comidas — una sola tabla para todos los días, se filtra por
+// `date`, mismo criterio que ya se aplicó con set_logs.
+export const mealLogs = sqliteTable("meal_logs", {
+  id: text("id").primaryKey(),
+  date: text("date").notNull(), // YYYY-MM-DD, vía getLocalDateString
+  mealType: text("meal_type").notNull(), // "breakfast" | "lunch" | "dinner" | "snack"
+  photoUri: text("photo_uri"), // null tras retención de 14 días o si es manual sin foto
+  name: text("name").notNull(),
+  calories: integer("calories").notNull(),
+  proteinG: real("protein_g").notNull(),
+  carbsG: real("carbs_g").notNull(),
+  fatG: real("fat_g").notNull(),
+  confidence: real("confidence"), // 0-1, null si source === "manual"
+  source: text("source").notNull().default("manual"), // "ai" | "manual"
+  notes: text("notes"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+// Cache de la lista de compras semanal — una fila por semana, se conserva
+// histórico para comparar; invalidación explícita (§11), nunca soft-delete.
+export const shoppingLists = sqliteTable("shopping_lists", {
+  id: text("id").primaryKey(),
+  weekStartDate: text("week_start_date").notNull(), // YYYY-MM-DD
+  itemsJson: text("items_json").notNull().default("[]"),
+  estimatedTotal: real("estimated_total").notNull().default(0),
+  currency: text("currency").notNull().default("USD"),
+  generatedAt: text("generated_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+// Cache del texto de IA del morning briefing — una fila por fecha. Se BORRA
+// (no se marca) al invalidar, así "no hay fila" es la señal de regenerar (§3/§9).
+export const nutritionDayReports = sqliteTable("nutrition_day_reports", {
+  date: text("date").primaryKey(), // YYYY-MM-DD
+  reportText: text("report_text").notNull(),
+  generatedAt: text("generated_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
