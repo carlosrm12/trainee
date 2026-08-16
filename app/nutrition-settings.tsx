@@ -1,4 +1,5 @@
 import type { NutritionGoal } from "@/domain/entities";
+import { resolveWeightUnit } from "@/features/nutrition/resolveWeightUnit";
 import { useNutritionProfile } from "@/features/nutrition/useNutritionProfile";
 import { useSettings } from "@/features/profile/useSettings";
 import { MacroStepper } from "@/shared/components/MacroStepper";
@@ -233,7 +234,10 @@ export default function NutritionSettingsScreen() {
     dietaryRestrictions: [] as string[],
   };
 
-  const displayUnit = current.weightUnitOverride ?? globalWeightUnit;
+  const displayUnit = resolveWeightUnit(
+    globalWeightUnit,
+    current.weightUnitOverride,
+  );
   const usesOwnUnit = current.weightUnitOverride !== null;
 
   return (
@@ -325,6 +329,7 @@ export default function NutritionSettingsScreen() {
         />
         <SettingsRow
           label="Elegir para Nutrición"
+          isLast={!usesOwnUnit}
           control={
             <Pressable
               onPress={() => {

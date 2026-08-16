@@ -87,3 +87,7 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     `docs/PROGRESS-archive.md`. Lección aplicada ya en el código: pills segmentados en `flex-row`
     necesitan `alignSelf: "stretch"` + `justify-center` + padding simétrico explícitos, no confiar en
     defaults.
+  - Fix post-merge (branch `fix/nutrition-settings-cleanup`): `nutrition-settings.tsx` reimplementaba
+    la resolución de unidad inline en vez de usar `resolveWeightUnit` (creado en el paso 2) — corregido.
+    También se agregó `isLast` a la fila "Elegir para Nutrición" para evitar un borde colgante cuando
+    el `WeightUnitPicker` está colapsado.
