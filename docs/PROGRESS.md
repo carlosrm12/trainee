@@ -14,10 +14,17 @@
 
 ## Estado actual
 
-**Fase 2: paso 4 (Perfil recortado) cerrado — sin cambios de código, solo confirmación.**
-Próximo paso: **5 — Captura de comida** (cámara → Gemini → confirmación → guardado, §5). Es la pieza
-más grande de toda la fase — conviene abordarla en sub-entregas (ej. compresión/captura de imagen
-primero, después el cliente Gemini, después la pantalla de confirmación) en vez de todo en un branch.
+**Fase 2: paso 5a (Configuración de IA) mergeado a main.**
+Próximo paso: **5b — Cliente Gemini**: la función que manda la foto (Base64, comprimida) y devuelve
+el JSON de macros estructurado. Se prueba de forma aislada, sin UI todavía. Modelo confirmado:
+`gemini-2.5-flash`. La API key ya se puede guardar desde Ajustes de Nutrición → Configuración de IA.
+
+**Importante para cualquier pantalla nueva con inputs**: el proyecto usa **Expo Go**, no dev client —
+`KeyboardAvoidingView` está roto en Android con `edgeToEdgeEnabled: true` (activo en `app.json`), y
+librerías con módulos nativos (ej. `react-native-keyboard-controller`) no corren en Expo Go. La
+solución que sí funciona: manejo manual con `Keyboard` + `ScrollView.scrollToEnd` (ambas APIs core de
+RN, sin dependencias nuevas) — ver el patrón ya aplicado en `nutrition-settings.tsx`, reutilizarlo tal
+cual en vez de volver a probar `KeyboardAvoidingView`.
 
 Branch activo: ninguno todavía.
 
@@ -41,8 +48,13 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   ajustes globales (unidad de peso, sonido/vibración/notificaciones del timer). Sin campos de
   nutrición mezclados. `briefingHour`/`briefingMinute` (§8) queda pendiente a propósito — se agrega
   en el paso 7 junto con el hook que los consume, no antes.
-- `☐` **5. Captura de comida** — cámara → Gemini → confirmación → guardado (§5). Incluye retención de
-  fotos a 14 días.
+- `🔄` **5. Captura de comida** (§5) — dividido en sub-entregas:
+  - `✅` (a) Configuración de IA: `expo-secure-store` para la API key de Gemini, sección propia en
+    Ajustes de Nutrición.
+  - `☐` (b) Cliente Gemini: función que manda la foto y devuelve el JSON de macros.
+  - `☐` (c) Pantalla de captura: cámara/galería → compresión → confirmación editable → guardado.
+  - `☐` (d) Retención de fotos a 14 días (`clearExpiredPhotos`, ya existe en el repo desde el paso 2 —
+    falta engancharlo a correr al abrir la app).
 - `☐` **6. Dashboard de Nutrición** — consume `mealLogs` (§6).
 - `☐` **7. Morning briefing** — mecánica base (§9):
   - `☐` (a) `useMorningBriefingNotification` con trigger `DAILY`
@@ -98,3 +110,19 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
 
 - **Paso 4 (Perfil recortado)**: confirmación pura, sin cambios de código — `profile.tsx` ya estaba
   correctamente acotado desde el paso 1.
+
+- **Paso 5a (Configuración de IA)**:
+  - Modelo elegido: `gemini-2.5-flash` (tier gratuito, con visión).
+  - `features/nutrition/geminiApiKey.ts` + `useGeminiApiKey.ts`: wrapper directo sobre
+    `expo-secure-store`, mismo patrón de hook que `useNutritionProfile`. El campo de UI nunca precarga
+    la key real en texto — solo muestra "Configurada ✓" / "Sin configurar", para no tener el secreto
+    en memoria/pantalla más tiempo del necesario.
+  - "Configuración de IA" es una sección propia dentro de `nutrition-settings.tsx` (no en Perfil),
+    consistente con el "principio de propiedad de ajustes" de §2 del doc.
+  - **Bug de teclado en Android (Expo Go)**: `KeyboardAvoidingView` no funciona con
+    `edgeToEdgeEnabled: true` (obligatorio desde Android 15, ya activo en `app.json`) — tapaba el
+    campo de la API key. Se probó `react-native-keyboard-controller`, pero requiere módulo nativo y no
+    corre en Expo Go (el proyecto no usa dev client). Fix final, 100% JS y compatible con Expo Go:
+    listener manual de `Keyboard` (`keyboardDidShow`/`keyboardDidHide`) + `ScrollView.scrollToEnd()`
+    vía `ref`, con `contentContainerStyle` padding dinámico según altura del teclado. Detalle completo
+    en `docs/PROGRESS-archive.md`.
