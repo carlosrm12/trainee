@@ -106,3 +106,66 @@ reutilizar este mismo patrón manual de `Keyboard` + `ScrollView` en vez de `Key
 sabemos que no funciona en este proyecto con la config actual de `app.json`. Si en algún momento el
 proyecto migra de Expo Go a dev client, ahí sí conviene reconsiderar `react-native-keyboard-controller`
 como solución más robusta y unificada.
+
+---
+
+## Paso 3 — Fix post-merge: limpieza de `nutrition-settings.tsx` (branch `fix/nutrition-settings-cleanup`)
+
+Contexto: en la revisión del paso 3 ya mergeado se encontraron dos problemas menores, ninguno
+bloqueante, pero que valía la pena limpiar antes de arrancar el paso 4.
+
+1. **`resolveWeightUnit` sin usar**: la función se creó en el paso 2
+   (`features/nutrition/resolveWeightUnit.ts`) específicamente para ser el único lugar donde se
+   resuelve "¿unidad global o override?". `nutrition-settings.tsx` no la importaba y reescribía la
+   misma lógica inline con `current.weightUnitOverride ?? globalWeightUnit`. Mismo resultado en
+   runtime, pero duplicación que el propio doc de Fase 2 quería evitar al extraer la función. Fix:
+   reemplazar por `resolveWeightUnit(globalWeightUnit, current.weightUnitOverride)`.
+
+2. **Borde colgante en el bloque "Unidad de peso"**: dos `SettingsRow` seguidos de un
+   `WeightUnitPicker` que renderiza `null` cuando está colapsado. Como ninguna de las dos filas pasaba
+   `isLast`, la segunda ("Elegir para Nutrición") siempre pintaba su `border-b` — cuando el picker
+   estaba colapsado, ese borde quedaba flotando justo antes de la esquina redondeada del contenedor,
+   sin nada abajo. Fix: `isLast={!usesOwnUnit}` en esa fila, así el borde solo aparece cuando el
+   picker sí va a mostrarse debajo.
+
+3. **Ronda 2 del mismo fix**: al revisar el fix anterior se notó que `WeightUnitPicker` seguía
+   recalculando `current.weightUnitOverride ?? globalWeightUnit` por su cuenta para su prop `value`,
+   en vez de reusar la variable `displayUnit` ya calculada arriba con `resolveWeightUnit` — la misma
+   regla escrita dos veces en el mismo archivo, justo lo que el fix 1 buscaba evitar. Fix: `value={displayUnit}`.
+
+**Prueba manual usada para validar los tres fixes juntos** (sin cambio de comportamiento esperado):
+
+1. Abrir con `weightUnitOverride = null` → radio "Usar unidad global" marcado, picker oculto, sufijos
+   de peso en la unidad global.
+2. Tocar "Elegir para Nutrición" → picker aparece con la unidad global ya preseleccionada (confirma
+   que `displayUnit` se pasa bien como `value`).
+3. Cambiar a `lb` dentro del picker → sufijos de peso arriba se actualizan al instante.
+4. Volver a "Usar unidad global" → picker desaparece sin borde colgando.
+5. Cerrar y reabrir la pantalla → estado persistido correctamente.
+
+---
+
+## Paso 5b — botón "Probar conexión" en `GeminiApiKeySection`
+
+Contexto: mientras se armaba el cliente de Gemini (`analyzeMealPhoto.ts`), se agregó un botón dentro
+de la sección "Configuración de IA" de `nutrition-settings.tsx` para poder validar que la API key
+funciona de punta a punta (llamada real a Gemini con una foto) sin tener que esperar a que exista la
+pantalla completa de captura (5c).
+
+**Cómo funciona**: pide permiso de galería, abre `ImagePicker.launchImageLibraryAsync` con
+`base64: true` y `quality: 0.5`, llama a `analyzeMealPhoto(base64, apiKey)`, y muestra el resultado
+(nombre, macros, confianza) en un `Alert.alert`. Reusa `GeminiAnalysisError` para distinguir errores
+de conexión vs. errores de la API en el mensaje mostrado.
+
+**Por qué `quality: 0.5` no alcanza para el flujo real de captura**: ese parámetro de `ImagePicker`
+solo reduce la calidad de compresión JPEG — no cambia la resolución de la imagen. Una foto de cámara
+moderna sigue teniendo varios miles de píxeles de lado aunque se comprima a 0.5, lo que sigue siendo
+un payload Base64 grande para mandar a Gemini. El doc de Fase 2 (§5) pide explícitamente
+`expo-image-manipulator` para comprimir **y redimensionar** antes de mandar el Base64 — esa librería
+todavía no está instalada (`expo-image-manipulator` no aparece en `package.json` a la fecha de este
+registro).
+
+**Para 5c**: no reusar el patrón de este botón de prueba tal cual para el flujo de producción — hay
+que agregar `expo-image-manipulator` y redimensionar antes de comprimir, tal como pide §5. El botón de
+prueba está bien como está porque es un caso de uso puntual (una foto elegida a mano para validar la
+key), no el flujo repetido de 4-5 fotos/día que sí necesita el resize real.

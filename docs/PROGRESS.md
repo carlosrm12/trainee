@@ -102,45 +102,33 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   - `TagListEditor` (preferencias/restricciones) y `NumberField` (input numérico con commit en
     `onBlur`) quedaron locales a `nutrition-settings.tsx`, no como componentes compartidos — se
     extraen si otra pantalla los necesita.
-  - Serie de bugs de layout en pills segmentados ("Unidad de peso") resuelta — detalle completo en
-    `docs/PROGRESS-archive.md`. Lección aplicada ya en el código: pills segmentados en `flex-row`
-    necesitan `alignSelf: "stretch"` + `justify-center` + padding simétrico explícitos, no confiar en
-    defaults.
-  - Fix post-merge (branch `fix/nutrition-settings-cleanup`): `nutrition-settings.tsx` reimplementaba
-    la resolución de unidad inline en vez de usar `resolveWeightUnit` (creado en el paso 2) —
-    corregido. También se agregó `isLast` a la fila "Elegir para Nutrición" para evitar un borde
-    colgante cuando el `WeightUnitPicker` está colapsado. `WeightUnitPicker` pasó a recibir
-    `displayUnit` en vez de recalcular la unidad por su cuenta — misma fuente de verdad en los tres
-    lugares del archivo que necesitan la unidad resuelta.
+  - Serie de bugs de layout en pills segmentados ("Unidad de peso") resuelta. Lección aplicada ya en
+    el código: pills segmentados en `flex-row` necesitan `alignSelf: "stretch"` + `justify-center` +
+    padding simétrico explícitos, no confiar en defaults. Detalle completo en
+    `docs/PROGRESS-archive.md`.
+  - Fix post-merge (branch `fix/nutrition-settings-cleanup`): limpieza de duplicación de lógica de
+    unidad (`resolveWeightUnit`) y borde colgante en "Unidad de peso". Detalle en
+    `docs/PROGRESS-archive.md`.
 - **Paso 4 (Perfil recortado)**: confirmación pura, sin cambios de código — `profile.tsx` ya estaba
   correctamente acotado desde el paso 1.
 - **Paso 5a (Configuración de IA)**:
-  - Modelo elegido: `gemini-2.5-flash` (tier gratuito, con visión).
+  - Modelo elegido en su momento: `gemini-2.5-flash` (tier gratuito, con visión) — superado en 5b,
+    ver abajo.
   - `features/nutrition/geminiApiKey.ts` + `useGeminiApiKey.ts`: wrapper directo sobre
     `expo-secure-store`, mismo patrón de hook que `useNutritionProfile`. El campo de UI nunca precarga
-    la key real en texto — solo muestra "Configurada ✓" / "Sin configurar", para no tener el secreto
-    en memoria/pantalla más tiempo del necesario.
+    la key real en texto — solo muestra "Configurada ✓" / "Sin configurar".
   - "Configuración de IA" es una sección propia dentro de `nutrition-settings.tsx` (no en Perfil),
     consistente con el "principio de propiedad de ajustes" de §2 del doc.
-  - **Bug de teclado en Android (Expo Go)**: `KeyboardAvoidingView` no funciona con
-    `edgeToEdgeEnabled: true` (obligatorio desde Android 15, ya activo en `app.json`) — tapaba el
-    campo de la API key. Se probó `react-native-keyboard-controller`, pero requiere módulo nativo y no
-    corre en Expo Go (el proyecto no usa dev client). Fix final, 100% JS y compatible con Expo Go:
-    listener manual de `Keyboard` (`keyboardDidShow`/`keyboardDidHide`) + `ScrollView.scrollToEnd()`
-    vía `ref`, con `contentContainerStyle` padding dinámico según altura del teclado. Detalle completo
-    en `docs/PROGRESS-archive.md`.
+  - Bug de teclado en Android (Expo Go) con `KeyboardAvoidingView` — resuelto con listener manual de
+    `Keyboard` + `ScrollView.scrollToEnd`. **Reutilizar este mismo patrón en 5c y en el paso 9** (no
+    volver a intentar `KeyboardAvoidingView` ni libs con módulo nativo — no corren en Expo Go). Detalle
+    completo en `docs/PROGRESS-archive.md`.
 - **Paso 5b (Cliente Gemini)**:
-  - **Cambio de modelo a mitad de paso**: Google empezó a bloquear `gemini-2.5-flash` para API keys
-    nuevas. Se migró a `gemini-3.5-flash` (serie Gemini 3.x, con tier gratuito propio) — probado con
-    una foto real de comida, respuesta correcta.
-  - Esta serie reemplaza `thinking_budget` por `thinking_level`
-    (`generationConfig.thinkingConfig.thinkingLevel`); se seteó en `"LOW"` porque la tarea (estimar
-    macros de una imagen) no necesita el razonamiento profundo del default `"MEDIUM"` — más rápido y
-    más barato.
-  - Google también desaconseja tocar `temperature`/`top_p`/`top_k` en esta serie; el código nunca los
-    usó, se deja anotado para no agregarlos a futuro sin revisar esto primero.
-  - `GeminiApiKeySection` (Ajustes de Nutrición → Configuración de IA) incluye un botón "Probar
-    conexión": llama a `analyzeMealPhoto` contra una foto elegida de la galería y muestra el
-    resultado en un `Alert`, para validar la key sin esperar a 5c. Usa solo `quality: 0.5` de
-    `ImagePicker` (compresión de calidad, no resize) — no reemplaza la compresión con
-    `expo-image-manipulator` que pide §5 para el flujo real de captura, que sigue pendiente en 5c.
+  - Modelo vigente: `gemini-3.5-flash` (Google bloqueó `gemini-2.5-flash` para keys nuevas a mitad de
+    este paso) — probado con foto real, respuesta correcta. Config: `thinkingConfig.thinkingLevel:
+"LOW"` (esta serie reemplaza `thinking_budget`; no tocar `temperature`/`top_p`/`top_k`, Google lo
+    desaconseja en Gemini 3.x y el código nunca los usó).
+  - `GeminiApiKeySection` incluye un botón "Probar conexión" para validar la key sin esperar a 5c.
+    **Importante para 5c**: usa solo `quality: 0.5` de `ImagePicker` (compresión de calidad, no
+    resize) — no reemplaza el `expo-image-manipulator` que pide §5 para el flujo real de captura, que
+    sigue pendiente. Detalle en `docs/PROGRESS-archive.md`.
