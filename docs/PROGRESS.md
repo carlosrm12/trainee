@@ -14,10 +14,16 @@
 
 ## Estado actual
 
-**Fase 2: paso 5a (Configuración de IA) mergeado a main.**
-Próximo paso: **5b — Cliente Gemini**: la función que manda la foto (Base64, comprimida) y devuelve
-el JSON de macros estructurado. Se prueba de forma aislada, sin UI todavía. Modelo confirmado:
-`gemini-2.5-flash`. La API key ya se puede guardar desde Ajustes de Nutrición → Configuración de IA.
+**Fase 2: pasos 5a (Configuración de IA) y 5b (Cliente Gemini) mergeados a main.**
+
+Próximo paso: **5c — Pantalla de captura**: cámara/galería → compresión con
+`expo-image-manipulator` → confirmación editable (nombre/macros con steppers, `ConfidenceBadge`) →
+guardado en `mealLogs` (§5 del doc). Consume el cliente de 5b, todavía sin UI propia hasta ahora.
+
+**Modelo confirmado: `gemini-3.5-flash`** (Google bloqueó `gemini-2.5-flash` para API keys nuevas a
+mitad de 5b — ver log más abajo). La API key ya se puede guardar desde
+Ajustes de Nutrición → Configuración de IA, y el cliente ya manda foto + prompt y devuelve el JSON de
+macros estructurado, probado con una foto real.
 
 **Importante para cualquier pantalla nueva con inputs**: el proyecto usa **Expo Go**, no dev client —
 `KeyboardAvoidingView` está roto en Android con `edgeToEdgeEnabled: true` (activo en `app.json`), y
@@ -51,7 +57,8 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
 - `🔄` **5. Captura de comida** (§5) — dividido en sub-entregas:
   - `✅` (a) Configuración de IA: `expo-secure-store` para la API key de Gemini, sección propia en
     Ajustes de Nutrición.
-  - `☐` (b) Cliente Gemini: función que manda la foto y devuelve el JSON de macros.
+  - `✅` (b) Cliente Gemini: función que manda la foto y devuelve el JSON de macros, probada con una
+    foto real (`gemini-3.5-flash`, `thinkingLevel: "LOW"`).
   - `☐` (c) Pantalla de captura: cámara/galería → compresión → confirmación editable → guardado.
   - `☐` (d) Retención de fotos a 14 días (`clearExpiredPhotos`, ya existe en el repo desde el paso 2 —
     falta engancharlo a correr al abrir la app).
@@ -81,7 +88,6 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   - `useAppHeaderState` (hook nuevo): centraliza `routines + stats + settings + reminders` para las 5
     pantallas de tabs. Hace un fetch de `routines`/`stats` independiente del que cada pantalla ya hace
     para su propio contenido — duplicación de query menor, aceptable en SQLite local de un usuario.
-
 - **Paso 2 (Modelo de datos)**:
   - Migraciones siempre con `npx drizzle-kit generate`, nunca escritas a mano.
   - `dietaryPreferences`/`dietaryRestrictions` como texto JSON stringificado, no tabla relacional
@@ -90,7 +96,6 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     campo por campo, no un cast genérico, para mantener el chequeo de tipos de Drizzle.
   - Sanity check de `getLocalDateString` confirmado en dispositivo real (UTC-5): 23:50 del 16/ago →
     `"2026-08-16"` correcto.
-
 - **Paso 3 (Ajustes de Nutrición)**:
   - `MacroStepper`: mismo patrón de interacción que `SetStepper` pero compacto (texto 4xl → 2xl, layout
     de card) para que entren 2 por fila en una pantalla de ajustes.
@@ -107,10 +112,8 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     colgante cuando el `WeightUnitPicker` está colapsado. `WeightUnitPicker` pasó a recibir
     `displayUnit` en vez de recalcular la unidad por su cuenta — misma fuente de verdad en los tres
     lugares del archivo que necesitan la unidad resuelta.
-
 - **Paso 4 (Perfil recortado)**: confirmación pura, sin cambios de código — `profile.tsx` ya estaba
   correctamente acotado desde el paso 1.
-
 - **Paso 5a (Configuración de IA)**:
   - Modelo elegido: `gemini-2.5-flash` (tier gratuito, con visión).
   - `features/nutrition/geminiApiKey.ts` + `useGeminiApiKey.ts`: wrapper directo sobre
@@ -126,3 +129,13 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     listener manual de `Keyboard` (`keyboardDidShow`/`keyboardDidHide`) + `ScrollView.scrollToEnd()`
     vía `ref`, con `contentContainerStyle` padding dinámico según altura del teclado. Detalle completo
     en `docs/PROGRESS-archive.md`.
+- **Paso 5b (Cliente Gemini)**:
+  - **Cambio de modelo a mitad de paso**: Google empezó a bloquear `gemini-2.5-flash` para API keys
+    nuevas. Se migró a `gemini-3.5-flash` (serie Gemini 3.x, con tier gratuito propio) — probado con
+    una foto real de comida, respuesta correcta.
+  - Esta serie reemplaza `thinking_budget` por `thinking_level`
+    (`generationConfig.thinkingConfig.thinkingLevel`); se seteó en `"LOW"` porque la tarea (estimar
+    macros de una imagen) no necesita el razonamiento profundo del default `"MEDIUM"` — más rápido y
+    más barato.
+  - Google también desaconseja tocar `temperature`/`top_p`/`top_k` en esta serie; el código nunca los
+    usó, se deja anotado para no agregarlos a futuro sin revisar esto primero.
