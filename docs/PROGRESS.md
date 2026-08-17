@@ -139,3 +139,8 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     más barato.
   - Google también desaconseja tocar `temperature`/`top_p`/`top_k` en esta serie; el código nunca los
     usó, se deja anotado para no agregarlos a futuro sin revisar esto primero.
+  - `GeminiApiKeySection` (Ajustes de Nutrición → Configuración de IA) incluye un botón "Probar
+    conexión": llama a `analyzeMealPhoto` contra una foto elegida de la galería y muestra el
+    resultado en un `Alert`, para validar la key sin esperar a 5c. Usa solo `quality: 0.5` de
+    `ImagePicker` (compresión de calidad, no resize) — no reemplaza la compresión con
+    `expo-image-manipulator` que pide §5 para el flujo real de captura, que sigue pendiente en 5c.
