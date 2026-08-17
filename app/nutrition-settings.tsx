@@ -1,5 +1,6 @@
 import type { NutritionGoal } from "@/domain/entities";
 import { resolveWeightUnit } from "@/features/nutrition/resolveWeightUnit";
+import { useGeminiApiKey } from "@/features/nutrition/useGeminiApiKey";
 import { useNutritionProfile } from "@/features/nutrition/useNutritionProfile";
 import { useSettings } from "@/features/profile/useSettings";
 import { MacroStepper } from "@/shared/components/MacroStepper";
@@ -7,7 +8,7 @@ import { SettingsRow } from "@/shared/components/SettingsRow";
 import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { segmentedToggleStyle } from "@/shared/utils/segmentedToggleStyle";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -151,6 +152,125 @@ function TagListEditor({
     </View>
   );
 }
+
+// Sección propia de este tab (§2, "principio de propiedad de ajustes"): la
+// API key de Gemini es exclusiva del módulo de nutrición, no tiene lugar en
+// Perfil. No se precarga el valor real en el input al editar — solo se
+// muestra si está configurada o no, para no tener el secreto en texto plano
+// en memoria/pantalla más tiempo del necesario.
+function GeminiApiKeySection() {
+  const { apiKey, loading, save, clear } = useGeminiApiKey();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [visible, setVisible] = useState(false);
+
+  if (loading) return null;
+
+  const isConfigured = apiKey !== null;
+
+  async function handleSave() {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    await save(trimmed);
+    setDraft("");
+    setVisible(false);
+    setEditing(false);
+  }
+
+  function handleCancel() {
+    setDraft("");
+    setVisible(false);
+    setEditing(false);
+  }
+
+  async function handleClear() {
+    await clear();
+    handleCancel();
+  }
+
+  return (
+    <View className="mb-8">
+      <Text className="text-text-primary font-sans-semibold mb-1">
+        Configuración de IA
+      </Text>
+      <Text className="text-text-secondary text-xs font-sans mb-3">
+        API key de Gemini (tier gratuito) para analizar fotos de comida. Se
+        guarda cifrada en el dispositivo — nunca se sube a ningún lado salvo en
+        la llamada puntual a Gemini.
+      </Text>
+
+      {!editing && (
+        <View className="rounded-card border border-border-subtle bg-bg-surface flex-row items-center justify-between px-4 py-3">
+          <Text
+            className={
+              isConfigured
+                ? "text-success font-sans-medium"
+                : "text-text-secondary font-sans"
+            }
+          >
+            {isConfigured ? "Configurada ✓" : "Sin configurar"}
+          </Text>
+          <View className="flex-row gap-4">
+            <Pressable onPress={() => setEditing(true)}>
+              <Text className="text-accent font-sans-semibold text-sm">
+                {isConfigured ? "Cambiar" : "Agregar"}
+              </Text>
+            </Pressable>
+            {isConfigured && (
+              <Pressable onPress={handleClear}>
+                <Text className="text-danger font-sans-semibold text-sm">
+                  Quitar
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+
+      {editing && (
+        <View className="rounded-card border border-border-subtle bg-bg-surface p-4">
+          <View className="flex-row items-center bg-bg-surface-alt border border-border-subtle rounded-chip px-3 py-2 mb-3">
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              secureTextEntry={!visible}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="AIza..."
+              placeholderTextColor="#9B9BA5"
+              className="flex-1 text-text-primary font-sans"
+            />
+            <Pressable onPress={() => setVisible((v) => !v)}>
+              <Text className="text-text-secondary text-xs font-sans ml-2">
+                {visible ? "Ocultar" : "Mostrar"}
+              </Text>
+            </Pressable>
+          </View>
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={handleCancel}
+              className="flex-1 items-center justify-center rounded-chip border border-border-subtle py-2"
+            >
+              <Text className="text-text-secondary font-sans-semibold">
+                Cancelar
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleSave}
+              disabled={!draft.trim()}
+              style={{ opacity: draft.trim() ? 1 : 0.5 }}
+              className="flex-1 items-center justify-center rounded-chip bg-accent py-2"
+            >
+              <Text className="text-text-on-accent font-sans-semibold">
+                Guardar
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
 // Se monta/desmonta condicionalmente (nada de medición manual de altura,
 // que peleaba con Reanimated y causaba el parpadeo) — FadeIn/FadeOut se
 // encargan de la transición suave, es el mecanismo nativo de Reanimated
@@ -209,6 +329,29 @@ export default function NutritionSettingsScreen() {
   const router = useRouter();
   const { profile, loading, update } = useNutritionProfile();
   const { weightUnit: globalWeightUnit } = useSettings();
+  const scrollRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // Solución 100% JS (Keyboard + ScrollView.scrollToEnd, ambas APIs core de
+  // RN) — compatible con Expo Go, a diferencia de KeyboardAvoidingView (roto
+  // con edgeToEdgeEnabled en Android) o de librerías con módulos nativos.
+  // Como "Configuración de IA" es siempre lo último de la pantalla, hacer
+  // scroll al final alcanza para dejarlo visible arriba del teclado.
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      });
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -242,8 +385,9 @@ export default function NutritionSettingsScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       className="flex-1 bg-bg-base px-4 pt-16"
-      contentContainerStyle={{ paddingBottom: 100 }}
+      contentContainerStyle={{ paddingBottom: 100 + keyboardHeight }}
       keyboardShouldPersistTaps="handled"
     >
       <View className="flex-row items-center justify-between mb-6">
@@ -415,6 +559,7 @@ export default function NutritionSettingsScreen() {
         tags={current.dietaryRestrictions}
         onChange={(tags) => update({ dietaryRestrictions: tags })}
       />
+      <GeminiApiKeySection />
     </ScrollView>
   );
 }
