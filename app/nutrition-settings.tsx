@@ -1,4 +1,8 @@
 import type { NutritionGoal } from "@/domain/entities";
+import {
+  analyzeMealPhoto,
+  GeminiAnalysisError,
+} from "@/features/nutrition/analyzeMealPhoto";
 import { resolveWeightUnit } from "@/features/nutrition/resolveWeightUnit";
 import { useGeminiApiKey } from "@/features/nutrition/useGeminiApiKey";
 import { useNutritionProfile } from "@/features/nutrition/useNutritionProfile";
@@ -7,10 +11,12 @@ import { MacroStepper } from "@/shared/components/MacroStepper";
 import { SettingsRow } from "@/shared/components/SettingsRow";
 import { formatCurrency } from "@/shared/utils/formatCurrency";
 import { segmentedToggleStyle } from "@/shared/utils/segmentedToggleStyle";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Keyboard,
   Pressable,
   ScrollView,
@@ -163,10 +169,46 @@ function GeminiApiKeySection() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const [visible, setVisible] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   if (loading) return null;
 
   const isConfigured = apiKey !== null;
+
+  async function handleTestConnection() {
+    if (!apiKey) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        "Permiso necesario",
+        "Necesitamos acceso a tus fotos para la prueba.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 0.5,
+      base64: true,
+    });
+    if (result.canceled || !result.assets[0].base64) return;
+
+    setTesting(true);
+    try {
+      const analysis = await analyzeMealPhoto(result.assets[0].base64, apiKey);
+      Alert.alert(
+        "Conexión OK",
+        `${analysis.name}\n${analysis.calories} kcal · ${analysis.proteinG}g prot · ${analysis.carbsG}g carb · ${analysis.fatG}g grasa\nConfianza: ${Math.round(analysis.confidence * 100)}%`,
+      );
+    } catch (err) {
+      const message =
+        err instanceof GeminiAnalysisError ? err.message : "Error desconocido.";
+      Alert.alert("Error de conexión", message);
+    } finally {
+      setTesting(false);
+    }
+  }
 
   async function handleSave() {
     const trimmed = draft.trim();
@@ -200,30 +242,48 @@ function GeminiApiKeySection() {
       </Text>
 
       {!editing && (
-        <View className="rounded-card border border-border-subtle bg-bg-surface flex-row items-center justify-between px-4 py-3">
-          <Text
-            className={
-              isConfigured
-                ? "text-success font-sans-medium"
-                : "text-text-secondary font-sans"
-            }
-          >
-            {isConfigured ? "Configurada ✓" : "Sin configurar"}
-          </Text>
-          <View className="flex-row gap-4">
-            <Pressable onPress={() => setEditing(true)}>
-              <Text className="text-accent font-sans-semibold text-sm">
-                {isConfigured ? "Cambiar" : "Agregar"}
-              </Text>
-            </Pressable>
-            {isConfigured && (
-              <Pressable onPress={handleClear}>
-                <Text className="text-danger font-sans-semibold text-sm">
-                  Quitar
+        <View className="rounded-card border border-border-subtle bg-bg-surface px-4 py-3">
+          <View className="flex-row items-center justify-between">
+            <Text
+              className={
+                isConfigured
+                  ? "text-success font-sans-medium"
+                  : "text-text-secondary font-sans"
+              }
+            >
+              {isConfigured ? "Configurada ✓" : "Sin configurar"}
+            </Text>
+            <View className="flex-row gap-4">
+              <Pressable onPress={() => setEditing(true)}>
+                <Text className="text-accent font-sans-semibold text-sm">
+                  {isConfigured ? "Cambiar" : "Agregar"}
                 </Text>
               </Pressable>
-            )}
+              {isConfigured && (
+                <Pressable onPress={handleClear}>
+                  <Text className="text-danger font-sans-semibold text-sm">
+                    Quitar
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
+          {isConfigured && (
+            <Pressable
+              onPress={handleTestConnection}
+              disabled={testing}
+              style={{ opacity: testing ? 0.6 : 1 }}
+              className="mt-3 items-center justify-center rounded-chip border border-border-subtle py-2"
+            >
+              {testing ? (
+                <ActivityIndicator color="#9B9BA5" size="small" />
+              ) : (
+                <Text className="text-text-secondary font-sans-semibold text-sm">
+                  Probar conexión
+                </Text>
+              )}
+            </Pressable>
+          )}
         </View>
       )}
 
