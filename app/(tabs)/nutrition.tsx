@@ -2,7 +2,7 @@ import { AppHeader } from "@/shared/components/AppHeader";
 import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 
 export default function NutritionScreen() {
   const router = useRouter();
@@ -31,12 +31,10 @@ export default function NutritionScreen() {
         {/* Entrada temporal para poder probar la captura (paso 5c) antes de
             que exista el dashboard real — el FAB definitivo del paso 6
             apunta a la misma ruta, esto no se descarta, solo se reubica. */}
-        <Pressable onPress={() => router.push("/meal-capture")}>
-          <BrutalistButton
-            label="Probar registrar una comida"
-            onPress={() => router.push("/meal-capture")}
-          />
-        </Pressable>
+        <BrutalistButton
+          label="Probar registrar una comida"
+          onPress={() => router.push("/meal-capture")}
+        />
       </View>
     </ScrollView>
   );

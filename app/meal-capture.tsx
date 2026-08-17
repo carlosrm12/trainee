@@ -11,6 +11,7 @@ import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { ConfidenceBadge } from "@/shared/components/ConfidenceBadge";
 import { MacroStepper } from "@/shared/components/MacroStepper";
 import { getLocalDateString } from "@/shared/utils/getLocalDateString";
+import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
@@ -56,6 +57,9 @@ export default function MealCaptureScreen() {
   const [base64, setBase64] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Fila en SQLite creada solo si falló el análisis (ver §5 y el log de
+  // decisiones del fix post-5c) — null mientras el camino sea feliz.
+  const [mealLogId, setMealLogId] = useState<string | null>(null);
 
   // Campos editables de la confirmación
   const [mealType, setMealType] = useState<MealType>(inferMealType());
@@ -90,6 +94,32 @@ export default function MealCaptureScreen() {
           : "Error inesperado al analizar la foto.";
       setErrorMessage(message);
       setState("error");
+
+      // Solo se crea la fila la primera vez que falla (§5: "el registro
+      // queda en estado pending... reintentable desde el dashboard") — un
+      // reintento que vuelve a fallar reutiliza la misma fila, no duplica.
+      if (!mealLogId) {
+        try {
+          const pendingRow = await mealLogRepo.create({
+            date: getLocalDateString(),
+            mealType,
+            photoUri: persistedUri,
+            name: "Comida pendiente de analizar",
+            calories: 0,
+            proteinG: 0,
+            carbsG: 0,
+            fatG: 0,
+            confidence: null,
+            source: "ai",
+            analysisStatus: "pending",
+            notes: null,
+          });
+          setMealLogId(pendingRow.id);
+        } catch {
+          // Si ni esto se puede guardar no hay mucho más que hacer acá —
+          // el usuario sigue viendo la pantalla de error de todas formas.
+        }
+      }
     }
   }
 
@@ -147,11 +177,40 @@ export default function MealCaptureScreen() {
     }
   }
 
+  // Único punto de salida (✕). Desde "picker"/"analyzing" no hay nada que
+  // limpiar. Desde "error" se deja la fila pending intacta a propósito — es
+  // el punto central de este fix, recuperable después desde el dashboard.
+  // Desde "confirm" nunca se había persistido nada (§5: "la IA nunca
+  // escribe directo, recién se persiste tras la confirmación") — salvo que
+  // esta pantalla haya pasado antes por "pending" (falló, se reintentó, y
+  // funcionó); en ese caso sí hay una fila real y también se descarta.
+  async function handleClose() {
+    if (state === "confirm") {
+      if (mealLogId) {
+        try {
+          await mealLogRepo.delete(mealLogId);
+        } catch {
+          // no crítico — seguimos con la limpieza de la foto igual
+        }
+      }
+      if (photoUri) {
+        try {
+          const file = new File(photoUri);
+          if (file.exists) file.delete();
+        } catch {
+          // no crítico, la retención de 14 días (paso 5d) la agarra igual
+          // si por algo queda un archivo suelto
+        }
+      }
+    }
+    router.back();
+  }
+
   async function handleSave() {
     if (!photoUri) return;
     setSaving(true);
     try {
-      await mealLogRepo.create({
+      const values = {
         date: getLocalDateString(),
         mealType,
         photoUri,
@@ -161,9 +220,17 @@ export default function MealCaptureScreen() {
         carbsG,
         fatG,
         confidence,
-        source: "ai",
-        notes: null,
-      });
+        source: "ai" as const,
+        analysisStatus: "complete" as const,
+      };
+
+      if (mealLogId) {
+        // Venía de un intento fallido — se actualiza la fila pending en vez
+        // de crear una duplicada.
+        await mealLogRepo.update(mealLogId, values);
+      } else {
+        await mealLogRepo.create({ ...values, notes: null });
+      }
       router.back();
     } catch {
       Alert.alert("Error", "No se pudo guardar el registro. Probá de nuevo.");
@@ -179,7 +246,7 @@ export default function MealCaptureScreen() {
       />
       <View className="flex-1 bg-bg-base">
         <View className="flex-row items-center justify-between px-4 pt-16 pb-4">
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={handleClose}>
             <Text className="text-text-primary text-2xl">✕</Text>
           </Pressable>
           <Text className="text-text-primary font-sans-semibold">

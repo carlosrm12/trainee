@@ -57,6 +57,13 @@
       "when": 1786860407483,
       "tag": "0007_legal_jasper_sitwell",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786953844368,
+      "tag": "0008_careless_riptide",
+      "breakpoints": true
     }
   ]
 }

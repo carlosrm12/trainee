@@ -2,6 +2,7 @@ import { and, eq, gte, lte } from "drizzle-orm";
 import { randomUUID } from "expo-crypto";
 import { File } from "expo-file-system";
 import type {
+  MealAnalysisStatus,
   MealLog,
   MealLogRepository,
   MealSource,
@@ -23,6 +24,7 @@ function toDomain(r: typeof mealLogs.$inferSelect): MealLog {
     fatG: r.fatG,
     confidence: r.confidence,
     source: r.source as MealSource,
+    analysisStatus: r.analysisStatus as MealAnalysisStatus,
     notes: r.notes,
     createdAt: r.createdAt,
   };
@@ -34,6 +36,14 @@ export class SQLiteMealLogRepository implements MealLogRepository {
       .select()
       .from(mealLogs)
       .where(eq(mealLogs.date, date));
+    return rows.map(toDomain);
+  }
+
+  async getPending(): Promise<MealLog[]> {
+    const rows = await db
+      .select()
+      .from(mealLogs)
+      .where(eq(mealLogs.analysisStatus, "pending"));
     return rows.map(toDomain);
   }
 
@@ -60,6 +70,7 @@ export class SQLiteMealLogRepository implements MealLogRepository {
       fatG: meal.fatG,
       confidence: meal.confidence,
       source: meal.source,
+      analysisStatus: meal.analysisStatus,
       notes: meal.notes,
       createdAt,
     });

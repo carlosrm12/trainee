@@ -9,6 +9,7 @@ import m0004 from './0004_nice_the_renegades.sql';
 import m0005 from './0005_faithful_proteus.sql';
 import m0006 from './0006_overjoyed_siren.sql';
 import m0007 from './0007_legal_jasper_sitwell.sql';
+import m0008 from './0008_careless_riptide.sql';
 
   export default {
     journal,
@@ -20,7 +21,8 @@ m0003,
 m0004,
 m0005,
 m0006,
-m0007
+m0007,
+m0008
     }
   }
   
