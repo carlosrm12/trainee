@@ -1,7 +1,8 @@
 import { AppHeader } from "@/shared/components/AppHeader";
+import { BrutalistButton } from "@/shared/components/BrutalistButton";
 import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { useRouter } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function NutritionScreen() {
   const router = useRouter();
@@ -24,9 +25,18 @@ export default function NutritionScreen() {
         <Text className="text-text-primary font-sans-semibold text-center mb-1">
           Nutrición llega pronto
         </Text>
-        <Text className="text-text-secondary font-sans text-center">
+        <Text className="text-text-secondary font-sans text-center mb-6">
           El dashboard de comidas y macros se arma en el paso 6 de la Fase 2.
         </Text>
+        {/* Entrada temporal para poder probar la captura (paso 5c) antes de
+            que exista el dashboard real — el FAB definitivo del paso 6
+            apunta a la misma ruta, esto no se descarta, solo se reubica. */}
+        <Pressable onPress={() => router.push("/meal-capture")}>
+          <BrutalistButton
+            label="Probar registrar una comida"
+            onPress={() => router.push("/meal-capture")}
+          />
+        </Pressable>
       </View>
     </ScrollView>
   );

@@ -169,3 +169,68 @@ registro).
 que agregar `expo-image-manipulator` y redimensionar antes de comprimir, tal como pide §5. El botón de
 prueba está bien como está porque es un caso de uso puntual (una foto elegida a mano para validar la
 key), no el flujo repetido de 4-5 fotos/día que sí necesita el resize real.
+
+---
+
+## Paso 5a — Bug de teclado en Android con Expo Go (detalle completo)
+
+Ver la entrada ya existente más arriba en este archivo bajo "Paso 5a" — sin cambios, se mantiene igual.
+
+## Paso 5b — Cambio de modelo Gemini a mitad de paso
+
+Se armó `analyzeMealPhoto.ts` originalmente contra `gemini-2.5-flash` (elegido en el paso 5a). A mitad
+de las pruebas de 5b, Google empezó a bloquear ese modelo para API keys nuevas — se migró a
+`gemini-3.5-flash` (serie Gemini 3.x), probado con una foto real de comida, respuesta correcta.
+
+Esta serie reemplaza `thinking_budget` por `thinking_level`
+(`generationConfig.thinkingConfig.thinkingLevel`); se seteó en `"LOW"` porque la tarea (estimar macros
+de una imagen) no necesita el razonamiento profundo del default `"MEDIUM"` — más rápido y más barato.
+Google también desaconseja tocar `temperature`/`top_p`/`top_k` en esta serie; el código nunca los usó,
+queda anotado para no agregarlos a futuro sin revisar esto primero.
+
+De paso, se agregó un botón "Probar conexión" dentro de `GeminiApiKeySection`
+(`nutrition-settings.tsx`) para poder validar el cliente de Gemini de forma aislada, sin esperar a la
+pantalla de captura completa (5c) — usa `expo-image-picker` sobre la galería como fuente de prueba
+(con `quality: 0.5`, compresión simple, distinto del pipeline real de 5c que usa
+`expo-image-manipulator` con resize).
+
+## Paso 5c — Pantalla de captura: decisiones de alcance
+
+**`persistMealPhoto.ts`**: comprime/redimensiona con `expo-image-manipulator` (max width 1024px, JPEG
+calidad 0.7) y persiste esa misma versión comprimida como copia local (no la original) — ahorra
+espacio, un solo archivo por comida en vez de dos.
+
+**Selector de tipo de comida**: el ASCII de §5 del doc no muestra un selector de
+Desayuno/Almuerzo/Cena/Snack, pero el schema de `mealLogs` lo exige (`mealType`). Se agregó como chips
+en la pantalla de confirmación, con default inferido automáticamente según la hora del día
+(`inferMealType`), siempre editable por el usuario.
+
+**Estado "pending" ante fallo de Gemini, no implementado como tal**: el doc dice que un fallo debería
+dejar el registro "en estado pending, reintentable desde el dashboard" (§5). Pero `mealLogs` no tiene
+ninguna columna de estado para eso (no se agregó en el paso 2, no estaba contemplada en el diseño
+original de esa tabla) y el dashboard de nutrición todavía no existe (es el paso 6). Agregar una
+columna de schema nueva a mitad de 5c, sin que el doc especifique su forma exacta, se consideró
+prematuro. Para 5c, el reintento ante fallo es **inline, dentro de la misma pantalla de captura**
+(reusa el `base64` ya generado en memoria, sin volver a pedir la foto) — cubre el espíritu de "no
+perder el registro por un timeout" sin comprometerse a un cambio de schema no documentado.
+
+Probado en dispositivo real (modo avión activado a propósito): el botón "Reintentar" no se traba y
+reusa correctamente la foto ya elegida.
+
+**Pendiente a revisar en el paso 6**: si el dashboard necesita mostrar comidas en estado "pendiente de
+análisis" en la lista (por ejemplo, para que el usuario las vea y reintente después, no solo en el
+momento), ahí sí va a hacer falta evaluar agregar una columna de estado a `mealLogs` — no antes, cuando
+ya se sepa exactamente qué necesita mostrar esa pantalla.
+
+**`ConfidenceBadge`** (nuevo, §13): mismo tratamiento visual chico que `StreakBadge`. Se resalta en
+rojo (`text-danger`/`border-danger`) cuando la confianza es menor a 60%, sin bloquear el guardado — es
+la comida del usuario, la IA solo ayuda.
+
+**Entrada temporal en `nutrition.tsx`**: botón "Probar registrar una comida" → `/meal-capture`, para
+poder probar 5c en dispositivo sin esperar a que exista el dashboard del paso 6. Misma ruta que va a
+usar el FAB definitivo del dashboard — se reubica en el paso 6, no se descarta ni se reescribe.
+
+**Confirmado en dispositivo**: `expo-image-manipulator` corre en Expo Go sin necesitar rebuild de dev
+client, a diferencia de `react-native-keyboard-controller` (paso 5a). No todo módulo nativo requiere
+dev client — depende de si es parte del SDK de Expo (viene precompilado en el binario de Expo Go) o es
+una librería de terceros fuera de ese set.
