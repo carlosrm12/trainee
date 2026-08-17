@@ -90,4 +90,4 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   - Fix post-merge (branch `fix/nutrition-settings-cleanup`): `nutrition-settings.tsx` reimplementaba
     la resolución de unidad inline en vez de usar `resolveWeightUnit` (creado en el paso 2) — corregido.
     También se agregó `isLast` a la fila "Elegir para Nutrición" para evitar un borde colgante cuando
-    el `WeightUnitPicker` está colapsado.
+    el `WeightUnitPicker` está colapsado. De paso, `WeightUnitPicker` también pasó a recibir `displayUnit`en vez de recalcular `current.weightUnitOverride ?? globalWeightUnit` por su cuenta — misma fuente de verdad en los tres lugares del archivo que necesitan la unidad resuelta.

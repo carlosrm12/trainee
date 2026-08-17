@@ -349,7 +349,7 @@ export default function NutritionSettingsScreen() {
         />
         <WeightUnitPicker
           expanded={usesOwnUnit}
-          value={current.weightUnitOverride ?? globalWeightUnit}
+          value={displayUnit}
           onChange={(unit) => update({ weightUnitOverride: unit })}
         />
       </View>
