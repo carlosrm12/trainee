@@ -126,6 +126,12 @@ export const mealLogs = sqliteTable("meal_logs", {
   fatG: real("fat_g").notNull(),
   confidence: real("confidence"), // 0-1, null si source === "manual"
   source: text("source").notNull().default("manual"), // "ai" | "manual"
+  // "pending": falló el análisis de Gemini, macros en 0, recuperable desde
+  // el dashboard (§5). "complete": la fila tiene valores reales, sea por IA
+  // confirmada o carga manual. Default "complete" para que filas ya
+  // existentes (creadas antes de esta columna) se interpreten correctamente
+  // sin migración de datos manual.
+  analysisStatus: text("analysis_status").notNull().default("complete"), // "pending" | "complete"
   notes: text("notes"),
   createdAt: text("created_at")
     .notNull()

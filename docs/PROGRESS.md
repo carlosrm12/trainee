@@ -99,6 +99,9 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   `thinkingConfig.thinkingLevel: "LOW"`. Cliente vía REST directo (`fetch` + `responseSchema`), sin SDK.
 - **Paso 5c**: `persistMealPhoto` comprime con `expo-image-manipulator` y persiste esa misma versión
   (no la original). Selector de tipo de comida agregado (no estaba en el ASCII del doc), default por
-  hora del día. Reintento ante fallo de Gemini es inline en la pantalla, no hay campo "pending" en el
-  schema — motivo y qué revisar en el paso 6 si hace falta el flujo completo: ver archive.
-  `ConfidenceBadge` nuevo (§13). Confirmado: `expo-image-manipulator` corre en Expo Go sin rebuild.
+  hora del día. `ConfidenceBadge` nuevo (§13). Fix post-revisión (branch `fix/paso5c`): se agregó
+  `analysisStatus` (`"pending" | "complete"`) a `mealLogs` — si falla el análisis de Gemini se crea
+  una fila `pending` con la foto (nunca se pierde el registro), reintentable; si el reintento
+  funciona se actualiza esa misma fila en vez de duplicarla. `handleClose` también limpia fila+foto
+  si se cancela desde "confirm" sin guardar. `MealLogRepository.getPending()` nuevo, listo para que
+  el dashboard del paso 6 lo consuma.

@@ -140,6 +140,7 @@ export interface NutritionProfile {
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
 export type MealSource = "ai" | "manual";
+export type MealAnalysisStatus = "pending" | "complete";
 
 export interface MealLog {
   id: string;
@@ -153,6 +154,10 @@ export interface MealLog {
   fatG: number;
   confidence: number | null; // 0-1, null si source === "manual"
   source: MealSource;
+  // "pending": falló el análisis de Gemini — la fila existe (foto + macros
+  // en 0) para no perder el registro, reintentable después (§5). Nunca se
+  // crea directo en "complete" antes de que el usuario confirme.
+  analysisStatus: MealAnalysisStatus;
   notes: string | null;
   createdAt: string;
 }
@@ -189,6 +194,9 @@ export interface NutritionProfileRepository {
 export interface MealLogRepository {
   getByDate(date: string): Promise<MealLog[]>;
   getByDateRange(startDate: string, endDate: string): Promise<MealLog[]>;
+  // Para el dashboard (paso 6): mostrar/reintentar comidas que quedaron sin
+  // analizar por una falla previa.
+  getPending(): Promise<MealLog[]>;
   create(meal: Omit<MealLog, "id" | "createdAt">): Promise<MealLog>;
   update(id: string, changes: Partial<Omit<MealLog, "id">>): Promise<void>;
   delete(id: string): Promise<void>;

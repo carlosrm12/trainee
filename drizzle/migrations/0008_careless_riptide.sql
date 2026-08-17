@@ -1,0 +1,1 @@
+ALTER TABLE `meal_logs` ADD `analysis_status` text DEFAULT 'complete' NOT NULL;
