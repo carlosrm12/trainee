@@ -14,10 +14,10 @@
 
 ## Estado actual
 
-**Fase 2: paso 3 (Ajustes de Nutrición) mergeado a main.**
-Próximo paso: **4 — Perfil recortado**. Con el refactor de `SettingsRow` ya hecho en el paso 3, este
-paso queda mayormente en confirmar que `profile.tsx` (§8) no tiene ni tuvo nunca campos de nutrición
-mezclados — no se espera una reescritura grande.
+**Fase 2: paso 4 (Perfil recortado) cerrado — sin cambios de código, solo confirmación.**
+Próximo paso: **5 — Captura de comida** (cámara → Gemini → confirmación → guardado, §5). Es la pieza
+más grande de toda la fase — conviene abordarla en sub-entregas (ej. compresión/captura de imagen
+primero, después el cliente Gemini, después la pantalla de confirmación) en vez de todo en un branch.
 
 Branch activo: ninguno todavía.
 
@@ -37,8 +37,10 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   (global vs. override + kg/lb), metas diarias de macros (`MacroStepper`), presupuesto semanal,
   preferencias/restricciones editables. `SettingsRow` extraído y `profile.tsx` refactorizado para
   reutilizarlo.
-- `☐` **4. Perfil recortado** — confirmar alcance de `profile.tsx` (§8), mover lo que haya quedado
-  mezclado.
+- `✅` **4. Perfil recortado** — confirmado: `profile.tsx` solo tiene identidad (avatar/nombre) +
+  ajustes globales (unidad de peso, sonido/vibración/notificaciones del timer). Sin campos de
+  nutrición mezclados. `briefingHour`/`briefingMinute` (§8) queda pendiente a propósito — se agrega
+  en el paso 7 junto con el hook que los consume, no antes.
 - `☐` **5. Captura de comida** — cámara → Gemini → confirmación → guardado (§5). Incluye retención de
   fotos a 14 días.
 - `☐` **6. Dashboard de Nutrición** — consume `mealLogs` (§6).
@@ -88,6 +90,11 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
     necesitan `alignSelf: "stretch"` + `justify-center` + padding simétrico explícitos, no confiar en
     defaults.
   - Fix post-merge (branch `fix/nutrition-settings-cleanup`): `nutrition-settings.tsx` reimplementaba
-    la resolución de unidad inline en vez de usar `resolveWeightUnit` (creado en el paso 2) — corregido.
-    También se agregó `isLast` a la fila "Elegir para Nutrición" para evitar un borde colgante cuando
-    el `WeightUnitPicker` está colapsado. De paso, `WeightUnitPicker` también pasó a recibir `displayUnit`en vez de recalcular `current.weightUnitOverride ?? globalWeightUnit` por su cuenta — misma fuente de verdad en los tres lugares del archivo que necesitan la unidad resuelta.
+    la resolución de unidad inline en vez de usar `resolveWeightUnit` (creado en el paso 2) —
+    corregido. También se agregó `isLast` a la fila "Elegir para Nutrición" para evitar un borde
+    colgante cuando el `WeightUnitPicker` está colapsado. `WeightUnitPicker` pasó a recibir
+    `displayUnit` en vez de recalcular la unidad por su cuenta — misma fuente de verdad en los tres
+    lugares del archivo que necesitan la unidad resuelta.
+
+- **Paso 4 (Perfil recortado)**: confirmación pura, sin cambios de código — `profile.tsx` ya estaba
+  correctamente acotado desde el paso 1.
