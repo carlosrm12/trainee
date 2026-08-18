@@ -14,6 +14,15 @@ export interface PersistedMealPhoto {
 // payload típico de una foto de cámara moderna es innecesariamente grande
 // para este uso. Se persiste esa misma versión comprimida (no la original)
 // como copia local: ahorra espacio y evita mantener dos archivos por comida.
+//
+// Fix post-paso 6: fotos tomadas con cámara (no de galería) crasheaban la
+// app en Expo Go sin ningún error en consola — síntoma típico de OOM en
+// Android. Causa probable: `saveAsync({ base64: true })` generaba el
+// string base64 en el mismo paso que renderiza la imagen a resolución
+// completa (una foto de cámara puede ser 12-48MP), duplicando el pico de
+// memoria justo en el momento más caro. Se separa en dos pasos: primero
+// guardar el archivo ya redimensionado en disco, y RECIÉN DESPUÉS —con el
+// bitmap grande ya liberado— leer el base64 desde ese archivo chico.
 export async function persistMealPhoto(
   pickedUri: string,
 ): Promise<PersistedMealPhoto> {
@@ -23,16 +32,13 @@ export async function persistMealPhoto(
   const result = await manipulated.saveAsync({
     format: SaveFormat.JPEG,
     compress: JPEG_QUALITY,
-    base64: true,
   });
-
-  if (!result.base64) {
-    throw new Error("No se pudo generar el Base64 de la foto.");
-  }
 
   const dest = new File(Paths.document, `meal-${randomUUID()}.jpg`);
   const source = new File(result.uri);
   await source.copy(dest);
 
-  return { uri: dest.uri, base64: result.base64 };
+  const base64 = await dest.base64();
+
+  return { uri: dest.uri, base64 };
 }

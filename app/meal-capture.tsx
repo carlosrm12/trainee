@@ -14,7 +14,7 @@ import { getLocalDateString } from "@/shared/utils/getLocalDateString";
 import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -50,7 +50,7 @@ function inferMealType(): MealType {
 
 export default function MealCaptureScreen() {
   const router = useRouter();
-  const { apiKey } = useGeminiApiKey();
+  const { apiKey, loading: apiKeyLoading } = useGeminiApiKey();
 
   const [state, setState] = useState<ScreenState>("picker");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -78,15 +78,23 @@ export default function MealCaptureScreen() {
     photoUri?: string;
     mealType?: string;
   }>();
+  // Bug encontrado en prueba de dispositivo: useGeminiApiKey() arranca con
+  // apiKey=null mientras carga desde secure-store (loading=true). Este
+  // efecto corría al montar, ANTES de que la key terminara de cargar —
+  // runAnalysis() veía apiKey=null (closure viejo) y tiraba "Falta
+  // configurar la API key" aunque sí estuviera configurada. Se espera a
+  // que apiKeyLoading sea false, y un ref evita reintentar más de una vez.
+  const resumedRef = useRef(false);
 
   useEffect(() => {
+    if (resumedRef.current) return;
+    if (apiKeyLoading) return;
     if (!params.mealLogId || !params.photoUri) return;
+    resumedRef.current = true;
     setMealLogId(params.mealLogId);
     if (params.mealType) setMealType(params.mealType as MealType);
     resumeFromPending(params.photoUri);
-    // Solo debe correr una vez, al montar la pantalla con estos params.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [apiKeyLoading, params.mealLogId, params.photoUri, params.mealType]);
 
   async function resumeFromPending(uri: string) {
     setPhotoUri(uri);
@@ -220,19 +228,23 @@ export default function MealCaptureScreen() {
   async function handleClose() {
     if (state === "confirm") {
       if (mealLogId) {
+        // El repo ahora también borra el archivo físico asociado antes de
+        // borrar la fila (fix del paso 6) — no hace falta duplicarlo acá.
         try {
           await mealLogRepo.delete(mealLogId);
         } catch {
-          // no crítico — seguimos con la limpieza de la foto igual
+          // no crítico
         }
-      }
-      if (photoUri) {
+      } else if (photoUri) {
+        // Nunca se llegó a crear una fila (camino feliz sin fallos
+        // previos) — la foto quedó en disco sin ningún row que la
+        // referencie. No hay retención de 14 días que la vaya a agarrar
+        // después porque no hay fila — hay que borrarla directo acá.
         try {
           const file = new File(photoUri);
           if (file.exists) file.delete();
         } catch {
-          // no crítico, la retención de 14 días (paso 5d) la agarra igual
-          // si por algo queda un archivo suelto
+          // no crítico
         }
       }
     }
