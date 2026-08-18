@@ -103,6 +103,9 @@ export default function MealCaptureScreen() {
       // todavía, es como si el picker recién hubiera vuelto ahora mismo.
       handlePickedAsset(params.photoUri);
     }
+    // handlePickedAsset/resumeFromPending no van en deps a propósito —
+    // resumedRef ya garantiza que este efecto actúa una sola vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKeyLoading, params.mealLogId, params.photoUri, params.mealType]);
 
   async function resumeFromPending(uri: string) {
@@ -186,7 +189,6 @@ export default function MealCaptureScreen() {
   // recuperación de getPendingResultAsync (ver useEffect más abajo) — ver
   // el comentario ahí sobre por qué existe esto.
   async function handlePickedAsset(uri: string) {
-    Alert.alert("TEST", "Foto recibida en JS, sin procesar: " + uri);
     try {
       const persisted = await persistMealPhoto(uri);
       setPhotoUri(persisted.uri);
