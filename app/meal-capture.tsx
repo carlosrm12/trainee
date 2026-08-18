@@ -13,8 +13,8 @@ import { MacroStepper } from "@/shared/components/MacroStepper";
 import { getLocalDateString } from "@/shared/utils/getLocalDateString";
 import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,6 +69,39 @@ export default function MealCaptureScreen() {
   const [carbsG, setCarbsG] = useState(0);
   const [fatG, setFatG] = useState(0);
   const [confidence, setConfidence] = useState<number | null>(null);
+
+  // Reintento desde el dashboard (paso 6): si llegamos con mealLogId +
+  // photoUri por query params, es una fila "pending" ya existente — se
+  // salta el picker y se re-analiza directo, sin crear una fila nueva.
+  const params = useLocalSearchParams<{
+    mealLogId?: string;
+    photoUri?: string;
+    mealType?: string;
+  }>();
+
+  useEffect(() => {
+    if (!params.mealLogId || !params.photoUri) return;
+    setMealLogId(params.mealLogId);
+    if (params.mealType) setMealType(params.mealType as MealType);
+    resumeFromPending(params.photoUri);
+    // Solo debe correr una vez, al montar la pantalla con estos params.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function resumeFromPending(uri: string) {
+    setPhotoUri(uri);
+    try {
+      const file = new File(uri);
+      const fileBase64 = await file.base64();
+      setBase64(fileBase64);
+      await runAnalysis(uri, fileBase64);
+    } catch {
+      setState("error");
+      setErrorMessage(
+        "No se pudo leer la foto guardada de este registro pendiente.",
+      );
+    }
+  }
 
   async function runAnalysis(persistedUri: string, imageBase64: string) {
     if (!apiKey) {
