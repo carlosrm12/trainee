@@ -89,11 +89,20 @@ export default function MealCaptureScreen() {
   useEffect(() => {
     if (resumedRef.current) return;
     if (apiKeyLoading) return;
-    if (!params.mealLogId || !params.photoUri) return;
+    if (!params.photoUri) return;
     resumedRef.current = true;
-    setMealLogId(params.mealLogId);
-    if (params.mealType) setMealType(params.mealType as MealType);
-    resumeFromPending(params.photoUri);
+
+    if (params.mealLogId) {
+      // Reintento de una fila "pending" ya existente (§ paso 6).
+      setMealLogId(params.mealLogId);
+      if (params.mealType) setMealType(params.mealType as MealType);
+      resumeFromPending(params.photoUri);
+    } else {
+      // Foto recuperada por getPendingResultAsync tras un reinicio de
+      // proceso tomando la foto con cámara — nunca se persistió nada
+      // todavía, es como si el picker recién hubiera vuelto ahora mismo.
+      handlePickedAsset(params.photoUri);
+    }
   }, [apiKeyLoading, params.mealLogId, params.photoUri, params.mealType]);
 
   async function resumeFromPending(uri: string) {
@@ -173,6 +182,51 @@ export default function MealCaptureScreen() {
     setConfidence(result.confidence);
   }
 
+  // Extraído de handlePick para poder reutilizarlo también desde la
+  // recuperación de getPendingResultAsync (ver useEffect más abajo) — ver
+  // el comentario ahí sobre por qué existe esto.
+  async function handlePickedAsset(uri: string) {
+    Alert.alert("TEST", "Foto recibida en JS, sin procesar: " + uri);
+    try {
+      const persisted = await persistMealPhoto(uri);
+      setPhotoUri(persisted.uri);
+      setBase64(persisted.base64);
+      await runAnalysis(persisted.uri, persisted.base64);
+    } catch {
+      setState("error");
+      setErrorMessage("No se pudo procesar la foto. Probá de nuevo.");
+    }
+  }
+
+  // Mitigación oficial de Expo para un problema conocido de Android, no un
+  // bug nuestro: el sistema a veces mata el proceso de la app (MainActivity)
+  // mientras la app nativa de Cámara está en primer plano, para liberar
+  // memoria — Expo Go en particular tiene un footprint bastante más grande
+  // que una build standalone, así que es más propenso a que esto pase justo
+  // ahí. Cuando pasa, el resultado del picker se pierde y el proceso entero
+  // se reinicia (por eso no hay ningún error capturable en JS). Expo
+  // recomienda getPendingResultAsync() para recuperar ese resultado al
+  // volver a montar. Ojo: reportes de la comunidad dicen que esta API es
+  // inconsistente según versión de Android/fabricante — esto reduce la
+  // frecuencia del problema, no lo elimina del todo mientras sigamos en
+  // Expo Go.
+  useEffect(() => {
+    (async () => {
+      try {
+        const pending = await ImagePicker.getPendingResultAsync();
+        if (pending && !("canceled" in pending && pending.canceled)) {
+          const maybeAssets = (pending as ImagePicker.ImagePickerResult).assets;
+          if (maybeAssets?.[0]?.uri) {
+            handlePickedAsset(maybeAssets[0].uri);
+          }
+        }
+      } catch {
+        // no había resultado pendiente que recuperar
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handlePick(source: "camera" | "library") {
     const permission =
       source === "camera"
@@ -199,15 +253,7 @@ export default function MealCaptureScreen() {
 
     if (result.canceled) return;
 
-    try {
-      const persisted = await persistMealPhoto(result.assets[0].uri);
-      setPhotoUri(persisted.uri);
-      setBase64(persisted.base64);
-      await runAnalysis(persisted.uri, persisted.base64);
-    } catch {
-      setState("error");
-      setErrorMessage("No se pudo procesar la foto. Probá de nuevo.");
-    }
+    handlePickedAsset(result.assets[0].uri);
   }
 
   function handleRetry() {

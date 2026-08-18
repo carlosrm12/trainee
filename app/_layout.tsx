@@ -6,7 +6,8 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import { Stack } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { Stack, useRouter } from "expo-router";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -25,6 +26,7 @@ const MEAL_PHOTO_RETENTION_DAYS = 14;
 SystemUI.setBackgroundColorAsync("#0E0E12");
 
 export default function RootLayout() {
+  const router = useRouter();
   const { success, error } = useMigrations(db, migrations);
   const [seeded, setSeeded] = useState(false);
   const [fontsLoaded] = useFonts({
@@ -48,6 +50,26 @@ export default function RootLayout() {
         console.warn("clearExpiredPhotos falló al abrir la app:", err);
       });
   }, [success]);
+  useEffect(() => {
+    if (!success || !seeded || !fontsLoaded) return;
+    (async () => {
+      try {
+        const pending = await ImagePicker.getPendingResultAsync();
+        if (pending && !("canceled" in pending && pending.canceled)) {
+          const uri = (pending as ImagePicker.ImagePickerResult).assets?.[0]
+            ?.uri;
+          if (uri) {
+            router.push({
+              pathname: "/meal-capture",
+              params: { photoUri: uri },
+            });
+          }
+        }
+      } catch {
+        // no había resultado pendiente que recuperar
+      }
+    })();
+  }, [success, seeded, fontsLoaded, router]);
 
   if (error) {
     return (
