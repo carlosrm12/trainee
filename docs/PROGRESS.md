@@ -14,15 +14,15 @@
 
 ## Estado actual
 
-**Fase 2: pasos 5a, 5b y 5c mergeados a main.** Captura de comida completa y funcional: cámara/galería
-→ compresión → Gemini → confirmación editable → guardado en `mealLogs`. Probado en dispositivo real,
-incluyendo el camino de error/reintento.
+**Fase 2: paso 5 completo (5a-5d) mergeado a main.** Captura de comida completa y funcional: cámara/galería
+→ compresión → Gemini → confirmación editable → guardado en `mealLogs`. Retención de fotos a 14 días
+activa (`clearExpiredPhotos` corre una vez al abrir la app, en `app/_layout.tsx`, fire-and-forget —
+no bloquea seed ni splash). Probado en dispositivo real de punta a punta: guardado, borrado del
+`photoUri` en DB y borrado físico del archivo confirmados.
 
-Próximo paso: **5d — Retención de fotos a 14 días**. `clearExpiredPhotos` ya existe en
-`SQLiteMealLogRepository` desde el paso 2 — falta engancharlo a correr una vez al abrir la app (§5:
-"con que corra una vez por sesión alcanza, no hace falta background job"). Después de 5d, Fase 2 pasa
-al **paso 6 — Dashboard de Nutrición**, que va a reemplazar el botón temporal de prueba en
-`nutrition.tsx` por el dashboard real (mismo destino `/meal-capture`, no cambia la ruta).
+Próximo paso: **6 — Dashboard de Nutrición** (§6). Reemplaza el botón temporal de prueba
+("Probar registrar una comida") en `nutrition.tsx` por el dashboard real — mismo destino
+`/meal-capture` desde el FAB definitivo, no cambia la ruta.
 
 **Modelo confirmado: `gemini-3.5-flash`**, `thinkingLevel: "LOW"`. API key vía Ajustes de Nutrición →
 Configuración de IA.
@@ -54,7 +54,7 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   ajustes globales (unidad de peso, sonido/vibración/notificaciones del timer). Sin campos de
   nutrición mezclados. `briefingHour`/`briefingMinute` (§8) queda pendiente a propósito — se agrega
   en el paso 7 junto con el hook que los consume, no antes.
-- `🔄` **5. Captura de comida** (§5) — dividido en sub-entregas:
+- `✅` **5. Captura de comida** (§5) — completo, dividido en sub-entregas:
   - `✅` (a) Configuración de IA: `expo-secure-store` para la API key de Gemini, sección propia en
     Ajustes de Nutrición.
   - `✅` (b) Cliente Gemini: función que manda la foto y devuelve el JSON de macros, probada con una
@@ -62,7 +62,9 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   - `✅` (c) Pantalla de captura: cámara/galería → compresión (`expo-image-manipulator`) →
     confirmación editable (`MacroStepper`, `ConfidenceBadge`) → guardado en `mealLogs`. Probada
     completa en dispositivo, incluyendo error/reintento.
-  - `☐` (d) Retención de fotos a 14 días — enganchar `clearExpiredPhotos` a correr al abrir la app.
+  - `✅` (d) Retención de fotos a 14 días — `clearExpiredPhotos` enganchado en `app/_layout.tsx`,
+    corre una vez al abrir la app. Probado en dispositivo: borrado de archivo físico + `photoUri = null`
+    confirmados.
 - `☐` **6. Dashboard de Nutrición** — consume `mealLogs` (§6). Reemplaza el botón temporal de
   `nutrition.tsx` por el dashboard real.
 - `☐` **7. Morning briefing** — mecánica base (§9):
@@ -105,3 +107,7 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   funciona se actualiza esa misma fila en vez de duplicarla. `handleClose` también limpia fila+foto
   si se cancela desde "confirm" sin guardar. `MealLogRepository.getPending()` nuevo, listo para que
   el dashboard del paso 6 lo consuma.
+- **Paso 5d**: `clearExpiredPhotos` (ya existía desde el paso 2) enganchado en un `useEffect` propio
+  de `app/_layout.tsx`, separado del que corre `seedInitialData` — best-effort, fire-and-forget, un
+  error ahí nunca bloquea el arranque. Umbral de 14 días como constante local en `_layout.tsx` (no
+  hay ningún lugar compartido de constantes de retención todavía).

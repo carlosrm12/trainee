@@ -12,9 +12,15 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { db } from "../data/db/client";
+import { SQLiteMealLogRepository } from "../data/repositories/SQLiteMealLogRepository";
 import { seedInitialData } from "../data/seedInitialData";
 import migrations from "../drizzle/migrations/migrations";
 import "../global.css";
+
+// Ver §5 "Retención de fotos": 14 días desde createdAt, borrado físico +
+// photoUri = null. Corre una vez por apertura de app, no es un background
+// job (no hace falta: no es sensible al segundo).
+const MEAL_PHOTO_RETENTION_DAYS = 14;
 
 SystemUI.setBackgroundColorAsync("#0E0E12");
 
@@ -31,6 +37,16 @@ export default function RootLayout() {
   useEffect(() => {
     if (!success) return;
     seedInitialData().then(() => setSeeded(true));
+  }, [success]);
+
+  useEffect(() => {
+    if (!success) return;
+    // Fire-and-forget: no debe bloquear el arranque ni gatear seeded/fonts.
+    new SQLiteMealLogRepository()
+      .clearExpiredPhotos(MEAL_PHOTO_RETENTION_DAYS)
+      .catch((err) => {
+        console.warn("clearExpiredPhotos falló al abrir la app:", err);
+      });
   }, [success]);
 
   if (error) {
