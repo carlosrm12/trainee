@@ -84,7 +84,25 @@ export class SQLiteMealLogRepository implements MealLogRepository {
     await db.update(mealLogs).set(changes).where(eq(mealLogs.id, id));
   }
 
+  // Fix del paso 6: swipe-to-delete en el dashboard borraba la fila pero
+  // dejaba la foto huérfana en disco para siempre — clearExpiredPhotos
+  // (paso 5d) solo barre fotos de filas que TODAVÍA existen en la tabla,
+  // así que una fila ya borrada nunca iba a pasar por esa limpieza. Se
+  // borra el archivo físico acá también, mismo patrón que ya usa
+  // clearExpiredPhotos.
   async delete(id: string): Promise<void> {
+    const rows = await db.select().from(mealLogs).where(eq(mealLogs.id, id));
+    const photoUri = rows[0]?.photoUri;
+    if (photoUri) {
+      try {
+        const file = new File(photoUri);
+        if (file.exists) {
+          file.delete();
+        }
+      } catch {
+        // el archivo puede ya no existir; igual borramos la fila
+      }
+    }
     await db.delete(mealLogs).where(eq(mealLogs.id, id));
   }
 

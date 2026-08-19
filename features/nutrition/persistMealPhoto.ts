@@ -1,6 +1,6 @@
 import { randomUUID } from "expo-crypto";
 import { File, Paths } from "expo-file-system";
-import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 
 const MAX_WIDTH = 1024;
 const JPEG_QUALITY = 0.7;
@@ -12,22 +12,28 @@ export interface PersistedMealPhoto {
 
 // Antes de enviar el Base64, la imagen se comprime/redimensiona (§5) — el
 // payload típico de una foto de cámara moderna es innecesariamente grande
-// para este uso. Se persiste esa misma versión comprimida (no la original)
-// como copia local: ahorra espacio y evita mantener dos archivos por comida.
+// para este uso.
+//
+// Fix post-paso 6: fotos tomadas con cámara (no de galería) crasheaban la
+// app en Expo Go/Android sin ningún error en consola — síntoma de OOM
+// nativo. Se cambió de la API contextual nueva de expo-image-manipulator
+// (ImageManipulator.manipulate().resize().renderAsync(), basada en Skia,
+// con reportes conocidos de manejo de memoria más pesado en Android) a la
+// API legacy `manipulateAsync` — deprecada desde el SDK 52 pero mucho más
+// madura para este caso puntual (fotos de cámara de alta resolución).
+// Revisar si Expo soluciona el problema de memoria en la API nueva antes
+// de volver a migrar.
 export async function persistMealPhoto(
   pickedUri: string,
 ): Promise<PersistedMealPhoto> {
-  const manipulated = await ImageManipulator.manipulate(pickedUri)
-    .resize({ width: MAX_WIDTH })
-    .renderAsync();
-  const result = await manipulated.saveAsync({
-    format: SaveFormat.JPEG,
-    compress: JPEG_QUALITY,
-    base64: true,
-  });
+  const result = await manipulateAsync(
+    pickedUri,
+    [{ resize: { width: MAX_WIDTH } }],
+    { compress: JPEG_QUALITY, format: SaveFormat.JPEG, base64: true },
+  );
 
   if (!result.base64) {
-    throw new Error("No se pudo generar el Base64 de la foto.");
+    throw new Error("La manipulación de la imagen no devolvió base64.");
   }
 
   const dest = new File(Paths.document, `meal-${randomUUID()}.jpg`);

@@ -14,15 +14,13 @@
 
 ## Estado actual
 
-**Fase 2: paso 5 completo (5a-5d) mergeado a main.** Captura de comida completa y funcional: cámara/galería
-→ compresión → Gemini → confirmación editable → guardado en `mealLogs`. Retención de fotos a 14 días
-activa (`clearExpiredPhotos` corre una vez al abrir la app, en `app/_layout.tsx`, fire-and-forget —
-no bloquea seed ni splash). Probado en dispositivo real de punta a punta: guardado, borrado del
-`photoUri` en DB y borrado físico del archivo confirmados.
+**Fase 2: paso 6 completo, mergeado a main.** Dashboard de Nutrición real (hero `MacroRing` +
+`StatRow` de macros del día, lista de comidas, sección de pendientes con reintento, FAB de captura).
+Captura de comida (paso 5) sigue completa y funcional de punta a punta: cámara/galería → compresión
+→ Gemini → confirmación editable → guardado en `mealLogs`. Retención de fotos a 14 días activa.
 
-Próximo paso: **6 — Dashboard de Nutrición** (§6). Reemplaza el botón temporal de prueba
-("Probar registrar una comida") en `nutrition.tsx` por el dashboard real — mismo destino
-`/meal-capture` desde el FAB definitivo, no cambia la ruta.
+Próximo paso: **7 — Morning briefing**, mecánica base de `expo-notifications` con trigger `DAILY`
+(§9). Empieza por (a) `useMorningBriefingNotification`.
 
 **Modelo confirmado: `gemini-3.5-flash`**, `thinkingLevel: "LOW"`. API key vía Ajustes de Nutrición →
 Configuración de IA.
@@ -31,6 +29,14 @@ Configuración de IA.
 `KeyboardAvoidingView` está roto en Android con `edgeToEdgeEnabled: true`. Solución que sí funciona:
 manejo manual con `Keyboard` + `ScrollView.scrollToEnd` (ver `nutrition-settings.tsx`). Librerías con
 módulos nativos de terceros (no del SDK de Expo) no corren en Expo Go — verificar antes de instalar.
+
+**Importante — cámara y Expo Go**: tomar una foto con la cámara puede hacer que Android mate el
+proceso de la app para liberar memoria (Expo Go pesa mucho más que un APK standalone) — la app se
+reinicia sin error capturable en JS, de forma no determinística. Confirmado armando un APK
+(`eas build --profile preview`) desde este branch: el crash no ocurre nunca en standalone, solo en
+Expo Go — no es un bug de código. Mitigación aplicada (reduce frecuencia en Expo Go, no la elimina):
+`ImagePicker.getPendingResultAsync()` vive en el **root** (`app/_layout.tsx`), no en la pantalla que
+abrió la cámara, porque si el proceso muere la app puede "revivir" en otra ruta.
 
 Branch activo: ninguno todavía.
 
@@ -65,8 +71,10 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   - `✅` (d) Retención de fotos a 14 días — `clearExpiredPhotos` enganchado en `app/_layout.tsx`,
     corre una vez al abrir la app. Probado en dispositivo: borrado de archivo físico + `photoUri = null`
     confirmados.
-- `☐` **6. Dashboard de Nutrición** — consume `mealLogs` (§6). Reemplaza el botón temporal de
-  `nutrition.tsx` por el dashboard real.
+- `✅` **6. Dashboard de Nutrición** — consume `mealLogs` (§6). `MacroRing` (nuevo, reutiliza técnica
+  SVG de `RestTimerRing`) + `StatRow` de macros del día; sección de comidas de hoy (`MealCard`,
+  swipe-to-delete); sección de pendientes de analizar (`getPending()`, cualquier fecha) con
+  reintento. FAB → `/meal-capture`. Probado en dispositivo (Expo Go + APK standalone).
 - `☐` **7. Morning briefing** — mecánica base (§9):
   - `☐` (a) `useMorningBriefingNotification` con trigger `DAILY`
   - `☐` (b) conectar a guardar hora en Perfil (cancelar + reprogramar)
@@ -111,3 +119,13 @@ Leyenda: `☐` sin empezar · `🔄` en curso (branch abierto) · `✅` mergeado
   de `app/_layout.tsx`, separado del que corre `seedInitialData` — best-effort, fire-and-forget, un
   error ahí nunca bloquea el arranque. Umbral de 14 días como constante local en `_layout.tsx` (no
   hay ningún lugar compartido de constantes de retención todavía).
+- **Paso 6**: `useTodayMealLogs` trae comidas completas de **hoy** pero pendientes de **cualquier
+  fecha** (`getPending()` sin filtro) — una `pending` vieja no debe desaparecer del dashboard solo
+  porque cambió el día. Reintento de una `pending` reutiliza `meal-capture.tsx` vía query params
+  (`mealLogId`+`photoUri`+`mealType`), releyendo el archivo ya persistido con `File.base64()` en vez
+  de re-tomar la foto. Caso borde: una `pending` de más de 14 días ya perdió su foto por la retención
+  del paso 5d — el dashboard ofrece eliminar el registro en ese caso en vez de un dead-end.
+  Fix: `SQLiteMealLogRepository.delete()` ahora borra también el archivo físico antes de borrar la
+  fila (swipe-to-delete dejaba fotos huérfanas — `clearExpiredPhotos` solo recorre filas que
+  todavía existen).
+  Cámara + Expo Go: ver nota en "Estado actual".

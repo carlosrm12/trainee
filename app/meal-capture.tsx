@@ -13,8 +13,8 @@ import { MacroStepper } from "@/shared/components/MacroStepper";
 import { getLocalDateString } from "@/shared/utils/getLocalDateString";
 import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -50,7 +50,7 @@ function inferMealType(): MealType {
 
 export default function MealCaptureScreen() {
   const router = useRouter();
-  const { apiKey } = useGeminiApiKey();
+  const { apiKey, loading: apiKeyLoading } = useGeminiApiKey();
 
   const [state, setState] = useState<ScreenState>("picker");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -69,6 +69,59 @@ export default function MealCaptureScreen() {
   const [carbsG, setCarbsG] = useState(0);
   const [fatG, setFatG] = useState(0);
   const [confidence, setConfidence] = useState<number | null>(null);
+
+  // Reintento desde el dashboard (paso 6): si llegamos con mealLogId +
+  // photoUri por query params, es una fila "pending" ya existente — se
+  // salta el picker y se re-analiza directo, sin crear una fila nueva.
+  const params = useLocalSearchParams<{
+    mealLogId?: string;
+    photoUri?: string;
+    mealType?: string;
+  }>();
+  // Bug encontrado en prueba de dispositivo: useGeminiApiKey() arranca con
+  // apiKey=null mientras carga desde secure-store (loading=true). Este
+  // efecto corría al montar, ANTES de que la key terminara de cargar —
+  // runAnalysis() veía apiKey=null (closure viejo) y tiraba "Falta
+  // configurar la API key" aunque sí estuviera configurada. Se espera a
+  // que apiKeyLoading sea false, y un ref evita reintentar más de una vez.
+  const resumedRef = useRef(false);
+
+  useEffect(() => {
+    if (resumedRef.current) return;
+    if (apiKeyLoading) return;
+    if (!params.photoUri) return;
+    resumedRef.current = true;
+
+    if (params.mealLogId) {
+      // Reintento de una fila "pending" ya existente (§ paso 6).
+      setMealLogId(params.mealLogId);
+      if (params.mealType) setMealType(params.mealType as MealType);
+      resumeFromPending(params.photoUri);
+    } else {
+      // Foto recuperada por getPendingResultAsync tras un reinicio de
+      // proceso tomando la foto con cámara — nunca se persistió nada
+      // todavía, es como si el picker recién hubiera vuelto ahora mismo.
+      handlePickedAsset(params.photoUri);
+    }
+    // handlePickedAsset/resumeFromPending no van en deps a propósito —
+    // resumedRef ya garantiza que este efecto actúa una sola vez.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKeyLoading, params.mealLogId, params.photoUri, params.mealType]);
+
+  async function resumeFromPending(uri: string) {
+    setPhotoUri(uri);
+    try {
+      const file = new File(uri);
+      const fileBase64 = await file.base64();
+      setBase64(fileBase64);
+      await runAnalysis(uri, fileBase64);
+    } catch {
+      setState("error");
+      setErrorMessage(
+        "No se pudo leer la foto guardada de este registro pendiente.",
+      );
+    }
+  }
 
   async function runAnalysis(persistedUri: string, imageBase64: string) {
     if (!apiKey) {
@@ -132,6 +185,50 @@ export default function MealCaptureScreen() {
     setConfidence(result.confidence);
   }
 
+  // Extraído de handlePick para poder reutilizarlo también desde la
+  // recuperación de getPendingResultAsync (ver useEffect más abajo) — ver
+  // el comentario ahí sobre por qué existe esto.
+  async function handlePickedAsset(uri: string) {
+    try {
+      const persisted = await persistMealPhoto(uri);
+      setPhotoUri(persisted.uri);
+      setBase64(persisted.base64);
+      await runAnalysis(persisted.uri, persisted.base64);
+    } catch {
+      setState("error");
+      setErrorMessage("No se pudo procesar la foto. Probá de nuevo.");
+    }
+  }
+
+  // Mitigación oficial de Expo para un problema conocido de Android, no un
+  // bug nuestro: el sistema a veces mata el proceso de la app (MainActivity)
+  // mientras la app nativa de Cámara está en primer plano, para liberar
+  // memoria — Expo Go en particular tiene un footprint bastante más grande
+  // que una build standalone, así que es más propenso a que esto pase justo
+  // ahí. Cuando pasa, el resultado del picker se pierde y el proceso entero
+  // se reinicia (por eso no hay ningún error capturable en JS). Expo
+  // recomienda getPendingResultAsync() para recuperar ese resultado al
+  // volver a montar. Ojo: reportes de la comunidad dicen que esta API es
+  // inconsistente según versión de Android/fabricante — esto reduce la
+  // frecuencia del problema, no lo elimina del todo mientras sigamos en
+  // Expo Go.
+  useEffect(() => {
+    (async () => {
+      try {
+        const pending = await ImagePicker.getPendingResultAsync();
+        if (pending && !("canceled" in pending && pending.canceled)) {
+          const maybeAssets = (pending as ImagePicker.ImagePickerResult).assets;
+          if (maybeAssets?.[0]?.uri) {
+            handlePickedAsset(maybeAssets[0].uri);
+          }
+        }
+      } catch {
+        // no había resultado pendiente que recuperar
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handlePick(source: "camera" | "library") {
     const permission =
       source === "camera"
@@ -158,15 +255,7 @@ export default function MealCaptureScreen() {
 
     if (result.canceled) return;
 
-    try {
-      const persisted = await persistMealPhoto(result.assets[0].uri);
-      setPhotoUri(persisted.uri);
-      setBase64(persisted.base64);
-      await runAnalysis(persisted.uri, persisted.base64);
-    } catch {
-      setState("error");
-      setErrorMessage("No se pudo procesar la foto. Probá de nuevo.");
-    }
+    handlePickedAsset(result.assets[0].uri);
   }
 
   function handleRetry() {
@@ -187,19 +276,23 @@ export default function MealCaptureScreen() {
   async function handleClose() {
     if (state === "confirm") {
       if (mealLogId) {
+        // El repo ahora también borra el archivo físico asociado antes de
+        // borrar la fila (fix del paso 6) — no hace falta duplicarlo acá.
         try {
           await mealLogRepo.delete(mealLogId);
         } catch {
-          // no crítico — seguimos con la limpieza de la foto igual
+          // no crítico
         }
-      }
-      if (photoUri) {
+      } else if (photoUri) {
+        // Nunca se llegó a crear una fila (camino feliz sin fallos
+        // previos) — la foto quedó en disco sin ningún row que la
+        // referencie. No hay retención de 14 días que la vaya a agarrar
+        // después porque no hay fila — hay que borrarla directo acá.
         try {
           const file = new File(photoUri);
           if (file.exists) file.delete();
         } catch {
-          // no crítico, la retención de 14 días (paso 5d) la agarra igual
-          // si por algo queda un archivo suelto
+          // no crítico
         }
       }
     }
