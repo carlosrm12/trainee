@@ -85,6 +85,12 @@ export const userSettings = sqliteTable("user_settings", {
     .notNull()
     .default(true),
   avatarUri: text("avatar_uri"), // ruta local del avatar copiado a documentDirectory, null = sin foto
+  // Hora del morning briefing (§8/§9 Fase 2) — ajuste general de rutina
+  // diaria, no un dato nutricional, por eso vive acá y no en
+  // nutrition_profile. Default 8:00 — guardarlo dispara
+  // useMorningBriefingNotification (cancelar + reprogramar), ver paso 7.
+  briefingHour: integer("briefing_hour").notNull().default(8),
+  briefingMinute: integer("briefing_minute").notNull().default(0),
 });
 
 // --- Fase 2: Nutrición ---

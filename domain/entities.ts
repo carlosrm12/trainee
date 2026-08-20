@@ -112,6 +112,8 @@ export interface UserSettings {
   vibrationEnabled: boolean;
   notificationsEnabled: boolean;
   avatarUri: string | null;
+  briefingHour: number;
+  briefingMinute: number;
 }
 
 export interface SettingsRepository {

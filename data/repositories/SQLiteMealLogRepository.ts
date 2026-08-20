@@ -10,6 +10,14 @@ import type {
 } from "../../domain/entities";
 import { mealLogs } from "../../drizzle/schema";
 import { db } from "../db/client";
+import { SQLiteNutritionDayReportRepository } from "./SQLiteNutritionDayReportRepository";
+
+// Regla de invalidación del morning briefing (§9, "sin excepciones"): si se
+// edita, borra o agrega un mealLog de una fecha cuyo reporte de IA ya
+// estaba cacheado, ese reporte se invalida — centralizado acá (no en cada
+// call site) para que sea imposible de olvidar, mismo criterio que ya se
+// usó con el borrado de fotos huérfanas.
+const dayReportRepo = new SQLiteNutritionDayReportRepository();
 
 function toDomain(r: typeof mealLogs.$inferSelect): MealLog {
   return {
@@ -74,6 +82,7 @@ export class SQLiteMealLogRepository implements MealLogRepository {
       notes: meal.notes,
       createdAt,
     });
+    await dayReportRepo.invalidate(meal.date);
     return { id, createdAt, ...meal };
   }
 
@@ -81,7 +90,15 @@ export class SQLiteMealLogRepository implements MealLogRepository {
     id: string,
     changes: Partial<Omit<MealLog, "id">>,
   ): Promise<void> {
+    const rows = await db.select().from(mealLogs).where(eq(mealLogs.id, id));
+    const currentDate = rows[0]?.date;
     await db.update(mealLogs).set(changes).where(eq(mealLogs.id, id));
+    // Invalida tanto la fecha vieja como la nueva por si `date` cambió
+    // (no debería pasar en el flujo normal, pero es más seguro que asumir).
+    if (currentDate) await dayReportRepo.invalidate(currentDate);
+    if (changes.date && changes.date !== currentDate) {
+      await dayReportRepo.invalidate(changes.date);
+    }
   }
 
   // Fix del paso 6: swipe-to-delete en el dashboard borraba la fila pero
@@ -93,6 +110,7 @@ export class SQLiteMealLogRepository implements MealLogRepository {
   async delete(id: string): Promise<void> {
     const rows = await db.select().from(mealLogs).where(eq(mealLogs.id, id));
     const photoUri = rows[0]?.photoUri;
+    const date = rows[0]?.date;
     if (photoUri) {
       try {
         const file = new File(photoUri);
@@ -104,6 +122,7 @@ export class SQLiteMealLogRepository implements MealLogRepository {
       }
     }
     await db.delete(mealLogs).where(eq(mealLogs.id, id));
+    if (date) await dayReportRepo.invalidate(date);
   }
 
   // Ver §5 "Retención de fotos": borra el archivo físico y limpia photoUri

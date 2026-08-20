@@ -1,3 +1,4 @@
+import { useMorningBriefingNotification } from "@/features/nutrition/useMorningBriefingNotification";
 import { useProfileStats } from "@/features/profile/useProfileStats";
 import { useSettings } from "@/features/profile/useSettings";
 import { SettingsRow } from "@/shared/components/SettingsRow";
@@ -50,13 +51,26 @@ export default function ProfileScreen() {
     setNotificationsEnabled,
     avatarUri,
     setAvatarUri,
+    briefingHour,
+    briefingMinute,
+    setBriefingTime,
   } = useSettings();
+  const { schedule: scheduleBriefingNotification } =
+    useMorningBriefingNotification();
 
   useFocusEffect(
     useCallback(() => {
       reload();
     }, [reload]),
   );
+
+  async function handleChangeBriefingTime(hour: number, minute: number) {
+    await setBriefingTime(hour, minute);
+    // No es un valor pasivo (§8): guardarlo dispara cancelar + reprogramar.
+    // No bloqueamos el cambio de la UI en esto ni mostramos error si falla
+    // — en Expo Go es directamente un no-op (ver useMorningBriefingNotification).
+    scheduleBriefingNotification(hour, minute).catch(() => {});
+  }
 
   async function handlePickAvatar() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -212,7 +226,6 @@ export default function ProfileScreen() {
         <SettingsRow
           label="Vibración del timer"
           description="Vibra al terminar el descanso con la app abierta."
-          isLast
           control={
             <Switch
               value={vibrationEnabled}
@@ -222,7 +235,83 @@ export default function ProfileScreen() {
             />
           }
         />
+        <SettingsRow
+          label="Hora del reporte matutino"
+          description="Cuándo llega el aviso con el reporte de nutrición de ayer."
+          isLast
+          control={
+            <TimeStepper
+              hour={briefingHour}
+              minute={briefingMinute}
+              onChange={handleChangeBriefingTime}
+            />
+          }
+        />
       </View>
     </ScrollView>
+  );
+}
+
+// Local a esta pantalla, no compartido — mismo criterio que MacroStepper/
+// NumberField en nutrition-settings.tsx (ver PROGRESS.md, paso 3). Dos
+// steppers en vez de un time picker nativo: coherente con el principio de
+// diseño de "steppers sobre teclado" (§1 del doc de diseño) y evita sumar
+// una dependencia nueva solo para elegir una hora redonda.
+function TimeStepper({
+  hour,
+  minute,
+  onChange,
+}: {
+  hour: number;
+  minute: number;
+  onChange: (hour: number, minute: number) => void;
+}) {
+  function changeHour(delta: number) {
+    onChange((hour + delta + 24) % 24, minute);
+  }
+  function changeMinute(delta: number) {
+    onChange(hour, (minute + delta + 60) % 60);
+  }
+
+  return (
+    <View className="flex-row items-center gap-3">
+      <View className="items-center">
+        <View className="flex-row gap-1 mb-1">
+          <Pressable
+            onPress={() => changeHour(-1)}
+            className="w-6 h-6 rounded-full bg-bg-surface-alt items-center justify-center"
+          >
+            <Text className="text-text-primary font-sans-bold text-xs">−</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => changeHour(1)}
+            className="w-6 h-6 rounded-full bg-bg-surface-alt items-center justify-center"
+          >
+            <Text className="text-text-primary font-sans-bold text-xs">+</Text>
+          </Pressable>
+        </View>
+        <Text className="text-text-secondary text-[9px] font-sans">hora</Text>
+      </View>
+      <Text className="text-text-primary font-sans-bold text-lg tabular-nums">
+        {String(hour).padStart(2, "0")}:{String(minute).padStart(2, "0")}
+      </Text>
+      <View className="items-center">
+        <View className="flex-row gap-1 mb-1">
+          <Pressable
+            onPress={() => changeMinute(-5)}
+            className="w-6 h-6 rounded-full bg-bg-surface-alt items-center justify-center"
+          >
+            <Text className="text-text-primary font-sans-bold text-xs">−</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => changeMinute(5)}
+            className="w-6 h-6 rounded-full bg-bg-surface-alt items-center justify-center"
+          >
+            <Text className="text-text-primary font-sans-bold text-xs">+</Text>
+          </Pressable>
+        </View>
+        <Text className="text-text-secondary text-[9px] font-sans">min</Text>
+      </View>
+    </View>
   );
 }

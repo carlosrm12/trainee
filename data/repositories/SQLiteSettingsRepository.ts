@@ -15,6 +15,8 @@ const DEFAULTS: UserSettings = {
   vibrationEnabled: true,
   notificationsEnabled: true,
   avatarUri: null,
+  briefingHour: 8,
+  briefingMinute: 0,
 };
 
 export class SQLiteSettingsRepository implements SettingsRepository {
@@ -31,6 +33,8 @@ export class SQLiteSettingsRepository implements SettingsRepository {
         soundEnabled: DEFAULTS.soundEnabled,
         vibrationEnabled: DEFAULTS.vibrationEnabled,
         notificationsEnabled: DEFAULTS.notificationsEnabled,
+        briefingHour: DEFAULTS.briefingHour,
+        briefingMinute: DEFAULTS.briefingMinute,
       });
       return DEFAULTS;
     }
@@ -40,6 +44,8 @@ export class SQLiteSettingsRepository implements SettingsRepository {
       vibrationEnabled: r.vibrationEnabled,
       notificationsEnabled: r.notificationsEnabled,
       avatarUri: r.avatarUri,
+      briefingHour: r.briefingHour,
+      briefingMinute: r.briefingMinute,
     };
   }
 

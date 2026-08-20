@@ -10,6 +10,8 @@ const DEFAULT_SETTINGS: UserSettings = {
   vibrationEnabled: true,
   notificationsEnabled: true,
   avatarUri: null,
+  briefingHour: 8,
+  briefingMinute: 0,
 };
 
 export function useSettings() {
@@ -52,6 +54,14 @@ export function useSettings() {
     setSettings((s) => ({ ...s, avatarUri: uri }));
   }
 
+  // Guarda las dos juntas — no tiene sentido persistir hora sin minuto o
+  // viceversa, y así el llamador (profile.tsx) siempre dispara la
+  // reprogramación de la notificación con el par completo de una vez.
+  async function setBriefingTime(hour: number, minute: number) {
+    await settingsRepo.update({ briefingHour: hour, briefingMinute: minute });
+    setSettings((s) => ({ ...s, briefingHour: hour, briefingMinute: minute }));
+  }
+
   return {
     loading,
     weightUnit: settings.weightUnit,
@@ -59,10 +69,13 @@ export function useSettings() {
     vibrationEnabled: settings.vibrationEnabled,
     notificationsEnabled: settings.notificationsEnabled,
     avatarUri: settings.avatarUri,
+    briefingHour: settings.briefingHour,
+    briefingMinute: settings.briefingMinute,
     setWeightUnit,
     setSoundEnabled,
     setVibrationEnabled,
     setNotificationsEnabled,
     setAvatarUri,
+    setBriefingTime,
   };
 }

@@ -64,6 +64,13 @@
       "when": 1786953844368,
       "tag": "0008_careless_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1787195893413,
+      "tag": "0009_smart_madame_web",
+      "breakpoints": true
     }
   ]
 }
