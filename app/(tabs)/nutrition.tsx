@@ -11,6 +11,7 @@ import { StatRow } from "@/shared/components/StatRow";
 import { SwipeableRow } from "@/shared/components/SwipeableRow";
 import { useAppHeaderState } from "@/shared/hooks/useAppHeaderState";
 import { useFocusEffect, useRouter } from "expo-router";
+import { History } from "lucide-react-native";
 import { useCallback } from "react";
 import {
   ActivityIndicator,
@@ -108,6 +109,11 @@ export default function NutritionScreen() {
           avatarUri={avatarUri}
           hasReminderPending={hasReminderPending}
           onSettingsPress={() => router.push("/nutrition-settings")}
+          rightExtra={
+            <Pressable onPress={() => router.push("/nutrition-history")}>
+              <History color="#9B9BA5" size={22} />
+            </Pressable>
+          }
         />
 
         <Text className="text-text-secondary text-sm font-sans mb-2">Hoy</Text>

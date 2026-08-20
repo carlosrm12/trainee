@@ -2,8 +2,21 @@ import { useNutritionDay } from "@/features/nutrition/useNutritionDay";
 import { StatRow } from "@/shared/components/StatRow";
 import { getLocalDateString } from "@/shared/utils/getLocalDateString";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useCallback } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+
+// Nunca calcular día siguiente/anterior con Date + toISOString (mismo
+// riesgo de UTC que ya está documentado en el resto del proyecto para
+// getLocalDateString) — se parsean los componentes a mano y se
+// reconstruye con el constructor local de Date, nunca parseando el
+// string YYYY-MM-DD directo (eso sí interpreta en UTC).
+function shiftDate(dateStr: string, deltaDays: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + deltaDays);
+  return getLocalDateString(dt);
+}
 
 // Mismo componente para el tap de la notificación del briefing ("ayer") y
 // para abrir cualquier día pasado a mano desde el historial nutricional —
@@ -30,6 +43,7 @@ export default function NutritionDayScreen() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const isYesterday = date === getLocalDateString(yesterday);
+  const isToday = date === getLocalDateString();
 
   const emptyCopy = isYesterday
     ? "Todavía no registraste comidas ayer."
@@ -37,10 +51,27 @@ export default function NutritionDayScreen() {
 
   return (
     <View className="flex-1 bg-bg-base px-4 pt-16">
-      <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-text-primary text-2xl font-sans-bold">
-          {date}
-        </Text>
+      <View className="flex-row items-center justify-between mb-2">
+        <Pressable
+          onPress={() =>
+            router.replace(`/nutrition-day/${shiftDate(date, -1)}`)
+          }
+          hitSlop={8}
+        >
+          <ChevronLeft color="#9B9BA5" size={22} />
+        </Pressable>
+        <Text className="text-text-primary text-lg font-sans-bold">{date}</Text>
+        <Pressable
+          onPress={() =>
+            !isToday && router.replace(`/nutrition-day/${shiftDate(date, 1)}`)
+          }
+          hitSlop={8}
+          disabled={isToday}
+        >
+          <ChevronRight color={isToday ? "#2A2A32" : "#9B9BA5"} size={22} />
+        </Pressable>
+      </View>
+      <View className="flex-row justify-end mb-6">
         <Pressable onPress={() => router.back()}>
           <Text className="text-accent font-sans-semibold">Cerrar</Text>
         </Pressable>
